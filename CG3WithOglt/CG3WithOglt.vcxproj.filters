@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="原始程式檔">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="標頭檔">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="資源檔">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="oglt_app.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_assimp_model.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_callback.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_camera.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_fbx_model.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_freetypefont.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_iapp.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_irenderable.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_material.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_mesh.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_resource.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_scene_node.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_scene_object.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_shader.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_skybox.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_texture.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_util.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_vbo.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="render_scene.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="std_util.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="glut_backend.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="oglt_assimp_model.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_camera.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_fbx_model.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_freetypefont.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_irenderable.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_material.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_mesh.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_resource.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_scene_node.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_scene_object.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_shader.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_skybox.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_texture.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_vbo.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="render_scene.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="std_util.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="glut_backend.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_app.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
