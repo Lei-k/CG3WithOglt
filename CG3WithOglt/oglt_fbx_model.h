@@ -5,6 +5,9 @@
 #include "oglt_mesh.h"
 #include "oglt_vbo.h"
 
+#include <glm\gtc\quaternion.hpp>
+#include <glm\gtx\quaternion.hpp>
+
 #include <fbxsdk.h>
 
 namespace oglt {
@@ -67,6 +70,11 @@ namespace oglt {
 		glm::mat4 toGlmMatrix(FbxAMatrix& matrix);
 		glm::mat4 toGlmMatrix(FbxMatrix& matrix);
 
+		glm::vec3 toGlmVec3(FbxVector4& fbxVec4);
+		glm::vec4 toGlmVec4(FbxVector4& fbxVec4);
+
+		glm::quat toGlmQuat(FbxQuaternion& fbxQuat);
+
 #define MAX_UV_CHANNEL 5
 
 		bool loaded;
@@ -84,7 +92,6 @@ namespace oglt {
 		map<string, uint> boneMapping;
 		vector<BoneInfo> boneInfos;
 		vector<FbxNode*> boneNodes;
-		vector<VertexBoneData> vertexBoneDatas;
 
 		float timer;
 		glm::mat4 globalTransform;

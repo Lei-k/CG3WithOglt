@@ -69,7 +69,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>..\includes;..\includes\assimpinclude;..\includes\glm;..\includes\freetypeinclude;..\includes\glutinclude;..\includes\glewinclude;..\includes\fbxinclude\vs2015\x86\debug;$(IncludePath)</IncludePath>
+    <IncludePath>..\includes;..\includes\assimpinclude;..\includes\glm;..\includes\freetypeinclude;..\includes\glutinclude;..\includes\glewinclude;..\includes\fbxinclude;$(IncludePath)</IncludePath>
     <LibraryPath>..\libs;..\libs\assimplib\x86;..\libs\freetypelib;..\libs\glewlib;..\libs\glutlib;..\libs\fbxlib\vs2015\x86\debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

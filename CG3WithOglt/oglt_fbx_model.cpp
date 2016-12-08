@@ -1,6 +1,7 @@
 #include "oglt_fbx_model.h"
 
 #include <fbxsdk\fileio\fbxiosettings.h>
+#include <glm\gtc\matrix_transform.hpp>
 
 using namespace oglt;
 using namespace glm;
@@ -677,7 +678,6 @@ void FbxModel::mapVertexBoneFromCtrlPoint(vector<VertexBoneData>& ctrlPointBones
 		}
 		boneIndices.addData(&vbd->boneIndices[0], sizeof(vbd->boneIndices));
 		boneWeights.addData(&vbd->weights[0], sizeof(vbd->weights));
-		vertexBoneDatas.push_back(*vbd);
 	}
 }
 
@@ -713,12 +713,12 @@ void FbxModel::updateAnimation(float deltaTime)
 
 	FbxTime time;
 	time.SetSecondDouble(timer);
-
+	
 	FOR(i, ESZ(boneInfos)) {
 		FbxNode* node = boneNodes[i];
-		FbxMatrix localMatrix = animEvaluator->GetNodeLocalTransform(node, time);
-		FbxMatrix globalMatrix = animEvaluator->GetNodeGlobalTransform(node, time);
-
+		FbxAMatrix localMatrix = animEvaluator->GetNodeLocalTransform(node, time);
+		FbxAMatrix globalMatrix = animEvaluator->GetNodeGlobalTransform(node, time);
+		
 		boneInfos[i].finalTransform = toGlmMatrix(globalMatrix) * boneInfos[i].boneOffset;
 	}
 }
@@ -752,15 +752,6 @@ void FbxModel::finalizeVBO()
 	glEnableVertexAttribArray(3);
 	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-	/*GLuint vertexBoneId;
-	glGenBuffers(1, &vertexBoneId);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBoneId);
-	glBufferData(GL_ARRAY_BUFFER, vertexBoneDatas.size() * sizeof(vertexBoneDatas[0]), &vertexBoneDatas[0], GL_STATIC_DRAW);
-	glEnableVertexAttribArray(4);
-	glVertexAttribIPointer(4, 4, GL_INT, sizeof(VertexBoneData), (const GLvoid*)0);
-	glEnableVertexAttribArray(5);
-	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)16);*/
-
 	// vertex bone indices
 	boneIndices.bindVBO();
 	boneIndices.uploadDataToGPU(GL_STATIC_DRAW);
@@ -781,10 +772,10 @@ glm::mat4 FbxModel::toGlmMatrix(FbxAMatrix & matrix)
 	data[4] = matrix.mData[1].mData[0]; data[5] = matrix.mData[1].mData[1]; data[6] = matrix.mData[1].mData[2]; data[7] = matrix.mData[1].mData[3];
 	data[8] = matrix.mData[2].mData[0]; data[9] = matrix.mData[2].mData[1]; data[10] = matrix.mData[2].mData[2]; data[11] = matrix.mData[2].mData[3];
 	data[12] = matrix.mData[3].mData[0]; data[13] = matrix.mData[3].mData[1]; data[14] = matrix.mData[3].mData[2]; data[15] = matrix.mData[3].mData[3];
-	return glm::mat4(data[0], data[4], data[8], data[12],
-		data[1], data[5], data[9], data[13],
-		data[2], data[6], data[10], data[14],
-		data[3], data[7], data[11], data[15]);
+	return glm::mat4(data[0], data[1], data[2], data[3],
+		data[4], data[5], data[6], data[7],
+		data[8], data[9], data[10], data[11],
+		data[12], data[13], data[14], data[15]);
 }
 
 glm::mat4 FbxModel::toGlmMatrix(FbxMatrix & matrix)
@@ -794,10 +785,25 @@ glm::mat4 FbxModel::toGlmMatrix(FbxMatrix & matrix)
 	data[4] = matrix.mData[1].mData[0]; data[5] = matrix.mData[1].mData[1]; data[6] = matrix.mData[1].mData[2]; data[7] = matrix.mData[1].mData[3];
 	data[8] = matrix.mData[2].mData[0]; data[9] = matrix.mData[2].mData[1]; data[10] = matrix.mData[2].mData[2]; data[11] = matrix.mData[2].mData[3];
 	data[12] = matrix.mData[3].mData[0]; data[13] = matrix.mData[3].mData[1]; data[14] = matrix.mData[3].mData[2]; data[15] = matrix.mData[3].mData[3];
-	return glm::mat4(data[0], data[1], data[2], data[3],
-		data[4], data[5], data[6], data[7],
-		data[8], data[9], data[10], data[11],
-		data[12], data[13], data[14], data[15]);
+	return glm::mat4(data[0], data[4], data[8], data[12],
+		data[1], data[5], data[9], data[13],
+		data[2], data[6], data[10], data[14],
+		data[3], data[7], data[11], data[15]);
+}
+
+glm::vec4 oglt::FbxModel::toGlmVec4(FbxVector4 & fbxVec4)
+{
+	return vec4(fbxVec4[0], fbxVec4[1], fbxVec4[2], fbxVec4[3]);
+}
+
+glm::quat FbxModel::toGlmQuat(FbxQuaternion & fbxQuat)
+{
+	return quat(fbxQuat[0], fbxQuat[1], fbxQuat[2], fbxQuat[3]);
+}
+
+glm::vec3 oglt::FbxModel::toGlmVec3(FbxVector4 & fbxVec4)
+{
+	return vec3(fbxVec4[0], fbxVec4[1], fbxVec4[2]);
 }
 
 void FbxModel::render(int renderType)

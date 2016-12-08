@@ -109,7 +109,8 @@ void scene::renderScene(oglt::IApp* app) {
 
 	worldTree.calcNodeHeirarchyTransform();
 	camera.update(cameraUpdateMode);
-	//testModel.updateAnimation(app->getDeltaTime());
+
+	testModel.updateAnimation(app->getDeltaTime());
 
 	worldTree.render(OGLT_RENDER_CHILDREN);
 
