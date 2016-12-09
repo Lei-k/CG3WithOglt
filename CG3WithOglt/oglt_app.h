@@ -23,5 +23,6 @@ namespace oglt {
 		virtual void getCursor(int& x, int& y);
 
 		virtual bool key(int ikey);
+		virtual bool oneKey(int ikey);
 	};
 }

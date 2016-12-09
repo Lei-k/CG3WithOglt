@@ -10,6 +10,7 @@
 using namespace oglt;
 
 bool IApp::keyStates[256] = { false };
+bool IApp::oneKeyStats[256] = { false };
 Cursor IApp::cursor;
 
 OgltApp::OgltApp() {
@@ -42,6 +43,13 @@ void OgltApp::renderScene() {
 void OgltApp::keyboard(OGLT_KEY key, OGLT_KEY_STATE state){
 	switch (state) {
 	case OGLT_KEY_PRESS:
+		if (!keyStates[key]) {
+			oneKeyStats[key] = true;
+		}
+		else {
+			oneKeyStats[key] = false;
+		}
+
 		keyStates[key] = true;
 		if (key == 'q') {
 			scene::releaseScene(this);
@@ -50,6 +58,7 @@ void OgltApp::keyboard(OGLT_KEY key, OGLT_KEY_STATE state){
 		break;
 	case OGLT_KEY_RELEASE:
 		keyStates[key] = false;
+		oneKeyStats[key] = false;
 		break;
 	}
 }
@@ -93,4 +102,13 @@ void OgltApp::getCursor(int & x, int & y)
 bool OgltApp::key(int ikey)
 {
 	return keyStates[ikey];
+}
+
+bool OgltApp::oneKey(int ikey)
+{
+	if (oneKeyStats[ikey]) {
+		oneKeyStats[ikey] = false;
+		return true;
+	}
+	return false;
 }

@@ -27,6 +27,7 @@ namespace oglt {
 		virtual void getCursor(int& x, int& y){}
 
 		virtual bool key(int ikey) { return false; }
+		virtual bool oneKey(int ikey) { return false; }
 
 	protected:
 		virtual void init() {
@@ -60,6 +61,7 @@ namespace oglt {
 		clock_t clockInSecond;
 
 		static bool keyStates[256];
+		static bool oneKeyStats[256];
 		static Cursor cursor;
 	};
 }
