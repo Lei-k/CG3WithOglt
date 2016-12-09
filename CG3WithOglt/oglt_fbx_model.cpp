@@ -45,6 +45,11 @@ void FbxModel::destroyManager()
 	manager->Destroy();
 }
 
+void FbxModel::setTimer(float timer)
+{
+	this->timer = timer;
+}
+
 bool FbxModel::load(const string & fileName)
 {
 	if (manager == NULL) {

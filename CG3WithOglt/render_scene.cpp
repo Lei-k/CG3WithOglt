@@ -87,13 +87,12 @@ void scene::initScene(oglt::IApp* app) {
 	
 	// Test the fbx model loading
 	// developing...
-	//testModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
-	//testModel.setShaderProgram(&spFbx);
-	//testObj.addRenderObj(&testModel);
-	/*testObj.setShaderProgram(&spFbx);
-	testObj.getLocalTransform()->position = vec3(0.0f, 50.0f, 0.0f);*/
-	//testObj.getLocalTransform()->scale = vec3(0.001f, 0.001f, 0.001f);
-	//cityObj.addChild(&testObj);
+	testModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
+	testModel.setShaderProgram(&spFbx);
+	testObj.addRenderObj(&testModel);
+	testObj.setShaderProgram(&spFbx);
+	testObj.getLocalTransform()->position = vec3(0.0f, 50.0f, 0.0f);
+	cityObj.addChild(&testObj);
 
 	IRenderable::mutexViewMatrix = camera.look();
 	IRenderable::mutexProjMatrix = app->getProj();
@@ -110,7 +109,7 @@ void scene::renderScene(oglt::IApp* app) {
 	worldTree.calcNodeHeirarchyTransform();
 	camera.update(cameraUpdateMode);
 
-	//testModel.updateAnimation(app->getDeltaTime());
+	testModel.updateAnimation(app->getDeltaTime());
 
 	worldTree.render(OGLT_RENDER_CHILDREN);
 
@@ -138,6 +137,10 @@ void scene::renderScene(oglt::IApp* app) {
 		else {
 			cameraUpdateMode |= OGLT_UPDATE_CAMERA_ROTATE;
 		}
+	}
+
+	if (app->oneKey('t') || app->oneKey('T')) {
+		testModel.setTimer(0.0f);
 	}
 
 	app->swapBuffers();

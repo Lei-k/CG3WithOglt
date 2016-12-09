@@ -20,6 +20,7 @@ namespace oglt {
 		static void destroyManager();
 		bool load(const string& fileName);
 		void updateAnimation(float deltaTime);
+		void setTimer(float timer);
 
 		virtual void render(int renderType = OGLT_RENDER_SELF);
 	private:
