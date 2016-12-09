@@ -51,7 +51,7 @@ void OgltApp::keyboard(OGLT_KEY key, OGLT_KEY_STATE state){
 		}
 
 		keyStates[key] = true;
-		if (key == 'q') {
+		if (key == 'q' || key == OGLT_KEY_ESCAPE) {
 			scene::releaseScene(this);
 			exit(0);
 		}

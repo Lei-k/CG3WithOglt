@@ -100,6 +100,56 @@ static OGLT_BUTTON_STATE toOgltButtonState(int glutState) {
 	return OGLT_BUTTON_STATE_UNDEFINED;
 }
 
+static OGLT_KEY toOgltSpecialKey(int glutKey) {
+	switch (glutKey) {
+	case GLUT_KEY_F1:        
+			return OGLT_KEY_F1;
+		case GLUT_KEY_F2:        
+			return OGLT_KEY_F2;
+		case GLUT_KEY_F3:       
+			return OGLT_KEY_F3;
+		case GLUT_KEY_F4:   
+			return OGLT_KEY_F4;
+		case GLUT_KEY_F5:      
+			return OGLT_KEY_F5;
+		case GLUT_KEY_F6:     
+			return OGLT_KEY_F6;
+		case GLUT_KEY_F7:     
+			return OGLT_KEY_F7;
+		case GLUT_KEY_F8:     
+			return OGLT_KEY_F8;
+		case GLUT_KEY_F9:     
+			return OGLT_KEY_F9;
+		case GLUT_KEY_F10:    
+			return OGLT_KEY_F10;
+		case GLUT_KEY_F11:   
+			return OGLT_KEY_F11;
+		case GLUT_KEY_F12:    
+			return OGLT_KEY_F12;
+		case GLUT_KEY_LEFT:         
+			return OGLT_KEY_LEFT;
+		case GLUT_KEY_UP:         
+			return OGLT_KEY_UP;
+		case GLUT_KEY_RIGHT:         
+			return OGLT_KEY_RIGHT;
+		case GLUT_KEY_DOWN:        
+			return OGLT_KEY_DOWN;            
+		case GLUT_KEY_PAGE_UP:   
+			return OGLT_KEY_PAGE_UP;
+		case GLUT_KEY_PAGE_DOWN:      
+			return OGLT_KEY_PAGE_DOWN;
+		case GLUT_KEY_HOME:    
+			return OGLT_KEY_HOME;
+		case GLUT_KEY_END:     
+			return OGLT_KEY_END;	
+		case GLUT_KEY_INSERT:         
+            return OGLT_KEY_INSERT;
+		case 27:
+			return OGLT_KEY_ESCAPE;
+	}
+	return OGLT_KEY_UNDEFINED;
+}
+
 static void renderScene() {
 	spCallback->renderScene();
 }
@@ -128,7 +178,13 @@ static void keyboard(unsigned char glutKey, int x, int y) {
 		spCallback->keyboard(key);
 	}
 	else {
-		cout << "use oglt undefined key" << endl;
+		OGLT_KEY key = toOgltSpecialKey(glutKey);
+		if (key != OGLT_KEY_UNDEFINED) {
+			spCallback->keyboard(key);
+		}
+		else {
+			cout << "Error: use oglt undefined key" << endl;
+		}
 	}
 }
 
@@ -142,7 +198,7 @@ static void keyboardUp(unsigned char glutKey, int x, int y) {
 		spCallback->keyboard(key, OGLT_KEY_RELEASE);
 	}
 	else {
-		cout << "use oglt undefined key" << endl;
+		cout << "Error: use oglt undefined key" << endl;
 	}
 }
 
