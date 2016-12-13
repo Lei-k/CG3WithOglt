@@ -8,3 +8,4 @@ glm::mat4 *IRenderable::mutexViewMatrix;
 glm::mat4 *IRenderable::mutexProjMatrix;
 glm::mat4 *IRenderable::mutexOrthoMatrix;
 glm::vec3* IRenderable::mutexSunLightDir;
+ShaderProgram* IRenderable::mutexShaderProgram;

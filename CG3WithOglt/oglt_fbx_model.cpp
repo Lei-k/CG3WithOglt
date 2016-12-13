@@ -118,17 +118,11 @@ bool FbxModel::load(const string & fileName)
 	cout << "vertex bone indices size: " << boneIndices.getCurrentSize() / (4 * sizeof(int)) << endl;
 	cout << "vetex bone weights size: " << boneWeights.getCurrentSize() / (4 * sizeof(float)) << endl;
 	cout << "bone infos size: " << boneInfos.size() << endl;
-	cout << "texture size: " << textures.size() << endl;
 	cout << "mesh size: " << meshs.size() << endl;
-	cout << "textures: " << endl;
-	FOR(i, ESZ(textures)) {
-		cout << "texture " << i << " path: " << textures[i].getPath() << endl;
-	}
 	FOR(i, meshs.size()) {
 		cout << "attribute on mesh " << i << endl;
 		cout << "start index: " << meshs[i].startIndex << endl;
 		cout << "size: " << meshs[i].size << endl;
-		cout << "material size: " << meshs[i].materials.size() << endl;
 		char buf[100];
 		switch (meshs[i].mtlMapMode) {
 		case NONE:
@@ -147,8 +141,7 @@ bool FbxModel::load(const string & fileName)
 			FOR(j, ESZ(meshs[i].polygons)) {
 				cout << "polygon " << j << " start index: " << meshs[i].polygons[j].startIndex << endl;
 				cout << "polygon " << j << " size: " << meshs[i].polygons[j].size << endl;
-				cout << "polygon " << j << " material index: " << meshs[i].polygons[j].materialIndex << endl;
-				cout << "polygon " << j << " use texture index: " << meshs[i].materials[meshs[i].polygons[j].materialIndex].getTextureIndex(DIFFUSE) << endl;
+				cout << "polygon " << j << " material index: " << meshs[i].polygons[j].materialId << endl;
 			}
 		}
 		cout << endl;
@@ -256,8 +249,10 @@ void FbxModel::processMesh(FbxNode * node)
 	connectSkeletonToMesh(mesh, ctrlPointBones);
 	mapVertexBoneFromCtrlPoint(ctrlPointBones, ctrlPointIndices);
 
+	vector<uint> newMaterialIds;
 	connectMtlToMesh(mesh, &meshEntry);
-	loadMaterial(mesh, &meshEntry);
+	loadMaterial(mesh, newMaterialIds);
+	reconnectMtlToMesh(&meshEntry, newMaterialIds);
 
 	if (meshEntry.mtlMapMode != BY_POLYGON) {
 		// if the materials are not use the polygon mapping
@@ -480,13 +475,13 @@ void FbxModel::connectMtlToMesh(FbxMesh * fbxMesh, Mesh * ogltMesh)
 			case FbxGeometryElement::eByPolygon:
 				if (mtlIndices->GetCount() == ogltMesh->triangles.size()) {
 					FOR(i, mtlIndices->GetCount()) {
-						ogltMesh->triangles[i].materialIndex = mtlIndices->GetAt(i);
+						ogltMesh->triangles[i].materialId = mtlIndices->GetAt(i);
 					}
 					ogltMesh->mtlMapMode = BY_POLYGON;
 				}
 				break;
 			case FbxGeometryElement::eAllSame:
-				ogltMesh->materialIndex = mtlIndices->GetAt(0);
+				ogltMesh->materialId = mtlIndices->GetAt(0);
 				ogltMesh->mtlMapMode = ALL_SAME;
 				break;
 			}
@@ -494,7 +489,22 @@ void FbxModel::connectMtlToMesh(FbxMesh * fbxMesh, Mesh * ogltMesh)
 	}
 }
 
-void FbxModel::loadMaterial(FbxMesh * mesh, Mesh* ogltMesh)
+void FbxModel::reconnectMtlToMesh(Mesh * mesh, vector<oglt::uint>& newMaterialIds)
+{
+	if (mesh->mtlMapMode == BY_POLYGON) {
+		FOR(i, ESZ(mesh->triangles)) {
+			uint oldId = mesh->triangles[i].materialId;
+			mesh->triangles[i].materialId = newMaterialIds[oldId];
+		}
+	}
+	else if (mesh->mtlMapMode == ALL_SAME) {
+		if (newMaterialIds.size() > 0) {
+			mesh->materialId = newMaterialIds[0];
+		}
+	}
+}
+
+void FbxModel::loadMaterial(FbxMesh* mesh, vector<oglt::uint>& newMaterialIds)
 {
 	FbxNode* node = mesh->GetNode();
 	if (node == NULL)
@@ -507,13 +517,15 @@ void FbxModel::loadMaterial(FbxMesh * mesh, Mesh* ogltMesh)
 			FbxSurfaceMaterial* surfaceMaterial = node->GetMaterial(i);
 			Material material;
 			loadMaterialAttribute(surfaceMaterial, &material);
-			ogltMesh->materials.push_back(material);
+			uint id = Resource::instance()->addMaterial(material);
+			newMaterialIds.push_back(id);
 		}
 	}
 }
 
 void FbxModel::loadMaterialAttribute(FbxSurfaceMaterial * surfaceMaterial, Material* outMaterial)
 {
+	outMaterial->setName(surfaceMaterial->GetName());
 	if (surfaceMaterial->GetClassId().Is(FbxSurfacePhong::ClassId)) {
 		FbxSurfacePhong* surfacePhone = (FbxSurfacePhong*)surfaceMaterial;
 		FbxDouble3 fbxColor = surfacePhone->Ambient;
@@ -585,22 +597,8 @@ void FbxModel::loadTexture(FbxTexture * texture, MaterialParam param, Material *
 {
 	if (texture) {
 		FbxFileTexture* fileTexture = FbxCast<FbxFileTexture>(texture);
-		int textureIndex = -1;
-		FOR(k, ESZ(textures)) {
-			if (string(fileTexture->GetFileName()) == textures[k].getPath()) {
-				textureIndex = k;
-				break;
-			}
-		}
-		if (textureIndex != -1) {
-			outMaterial->linkTexture(param, textureIndex);
-		}
-		else {
-			Texture newTexture;
-			newTexture.loadTexture2D(fileTexture->GetFileName(), true);
-			textures.push_back(newTexture);
-			outMaterial->linkTexture(param, ESZ(textures) - 1);
-		}
+		uint textureId = Resource::instance()->addTexture(fileTexture->GetFileName());
+		outMaterial->linkTexture(param, textureId);
 	}
 }
 
@@ -653,6 +651,7 @@ void FbxModel::connectSkinToMesh(FbxSkin* skin, vector<VertexBoneData>& ctrlPoin
 			BoneInfo boneInfo;
 			boneInfo.boneOffset = glm::inverse(glmLinkMatrix) * glmTransformMatrix;
 			boneInfo.finalTransform = glmLinkMatrix * boneInfo.boneOffset;
+			boneTransforms.push_back(boneInfo.finalTransform);
 			boneIndex = boneInfos.size();
 			boneInfos.push_back(boneInfo);
 			boneNodes.push_back(node);
@@ -719,12 +718,22 @@ void FbxModel::updateAnimation(float deltaTime)
 	FbxTime time;
 	time.SetSecondDouble(timer);
 	
+	boneTransforms.clear();
 	FOR(i, ESZ(boneInfos)) {
 		FbxNode* node = boneNodes[i];
 		FbxAMatrix localMatrix = animEvaluator->GetNodeLocalTransform(node, time);
 		FbxAMatrix globalMatrix = animEvaluator->GetNodeGlobalTransform(node, time);
 		
 		boneInfos[i].finalTransform = toGlmMatrix(globalMatrix) * boneInfos[i].boneOffset;
+		boneTransforms.push_back(boneInfos[i].finalTransform);
+	}
+	FOR(i, ESZ(meshs)) {
+		FOR(j, ESZ(meshs[i].polygons)) {
+			Material* material = Resource::instance()->getMaterial(meshs[i].polygons[j].materialId);
+			if (material != NULL) {
+				material->setBoneTransforms(boneTransforms);
+			}
+		}
 	}
 }
 
@@ -820,22 +829,6 @@ void FbxModel::render(int renderType)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if (shaderProgram != NULL) {
-		shaderProgram->useProgram();
-		shaderProgram->setUniform("matrices.viewMatrix", mutexViewMatrix);
-		shaderProgram->setUniform("matrices.projMatrix", mutexProjMatrix);
-		shaderProgram->setModelAndNormalMatrix("matrices.modelMatrix", "matrices.normalMatrix", mutexModelMatrix);
-		shaderProgram->setUniform("sunLight.vColor", vec3(1.0f, 1.0f, 1.0f));
-		shaderProgram->setUniform("sunLight.vDirection", mutexSunLightDir);
-		shaderProgram->setUniform("sunLight.fAmbient", 1.0f);
-		char buf[50];
-		FOR(i, ESZ(boneInfos)) {
-			sprintf(buf, "gBones[%d]", i);
-			shaderProgram->setUniform(buf, boneInfos[i].finalTransform);
-		}
-		
-	}
-
 	FOR(i, ESZ(meshs)) {
 		if (meshs[i].mtlMapMode == ALL_SAME) {
 			glDrawArrays(GL_TRIANGLES, meshs[i].startIndex, meshs[i].size);
@@ -843,16 +836,20 @@ void FbxModel::render(int renderType)
 		else if (meshs[i].mtlMapMode == BY_POLYGON) {
 			// test rendering with per polygon, the fps still on 1300
 			FOR(j, ESZ(meshs[i].polygons)) {
-				Material* material = &meshs[i].materials[meshs[i].polygons[j].materialIndex];
-				uint textureIndex = material->getTextureIndex(DIFFUSE);
-				if (textureIndex != OGLT_INVALID_TEXTURE_INDEX) {
-					textures[textureIndex].bindTexture();
+				Material* material = Resource::instance()->getMaterial(meshs[i].polygons[j].materialId);
+				if (material != NULL) {
+					if (material->getShaderProgram() == NULL) {
+						material->setShaderProgram(shaderProgram);
+					}
+					material->useMaterial();
 				}
 				glDrawArrays(GL_TRIANGLES, meshs[i].polygons[j].startIndex, meshs[i].polygons[j].size);
 			}
 		}
 	}
 	glDisable(GL_BLEND);
+
+	mutexShaderProgram = NULL;
 
 	// test rendering with per triangle, the fps reduce from 1300 to 55
 	/*FOR(i, ESZ(meshs)) {

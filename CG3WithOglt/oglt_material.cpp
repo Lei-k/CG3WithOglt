@@ -1,5 +1,8 @@
 #include "oglt_material.h"
 
+#include "oglt_irenderable.h"
+#include "oglt_resource.h"
+
 using namespace oglt;
 
 Material::Material()
@@ -14,9 +17,9 @@ Material::Material()
 
 	shaderProgram = NULL;
 
-	diffuseTextureIndex = OGLT_INVALID_TEXTURE_INDEX;
-	specularTextureIndex = OGLT_INVALID_TEXTURE_INDEX;
-	toonTextureIndex = OGLT_INVALID_TEXTURE_INDEX;
+	diffuseTextureId = OGLT_INVALID_TEXTURE_INDEX;
+	specularTextureId = OGLT_INVALID_TEXTURE_INDEX;
+	toonTextureId = OGLT_INVALID_TEXTURE_INDEX;
 }
 
 Material::~Material()
@@ -120,28 +123,28 @@ void oglt::Material::linkTexture(MaterialParam param, uint textureId)
 {
 	switch (param) {
 	case DIFFUSE:
-		diffuseTextureIndex = textureId;
+		diffuseTextureId = textureId;
 		break;
 	case SPECULAR:
-		specularTextureIndex = textureId;
+		specularTextureId = textureId;
 		break;
 	case TOON:
-		toonTextureIndex = textureId;
+		toonTextureId = textureId;
 		break;
 	default:
 		fprintf(stderr, "Error: Use undefined texture param\n");
 	}
 }
 
-uint oglt::Material::getTextureIndex(MaterialParam param)
+uint oglt::Material::getTextureId(MaterialParam param)
 {
 	switch (param) {
 	case DIFFUSE:
-		return diffuseTextureIndex;
+		return diffuseTextureId;
 	case SPECULAR:
-		return specularTextureIndex;
+		return specularTextureId;
 	case TOON:
-		return toonTextureIndex;
+		return toonTextureId;
 	default:
 		fprintf(stderr, "Error: Use undefined texture param\n");
 	}
@@ -154,12 +157,48 @@ void oglt::Material::setShaderProgram(ShaderProgram * shaderProgram)
 	this->shaderProgram = shaderProgram;
 }
 
+ShaderProgram * oglt::Material::getShaderProgram()
+{
+	return shaderProgram;
+}
+
+void oglt::Material::setBoneTransforms(const vector<glm::mat4>& boneTransforms)
+{
+	this->boneTransforms = boneTransforms;
+}
+
+void oglt::Material::setName(const string & materialName)
+{
+	this->materialName = materialName;
+}
+
+const string & oglt::Material::getName()
+{
+	return materialName;
+}
+
 void oglt::Material::useMaterial()
 {
 	if (shaderProgram == NULL)
 		return;
 
-	//shaderProgram->useProgram();
+	if (shaderProgram != IRenderable::mutexShaderProgram) {
+		shaderProgram->useProgram();
+		shaderProgram->setUniform("matrices.viewMatrix", IRenderable::mutexViewMatrix);
+		shaderProgram->setUniform("matrices.projMatrix", IRenderable::mutexProjMatrix);
+		shaderProgram->setModelAndNormalMatrix("matrices.modelMatrix", "matrices.normalMatrix", IRenderable::mutexModelMatrix);
+		shaderProgram->setUniform("sunLight.vColor", glm::vec3(1.0f, 1.0f, 1.0f));
+		shaderProgram->setUniform("sunLight.vDirection", IRenderable::mutexSunLightDir);
+		shaderProgram->setUniform("sunLight.fAmbient", 1.0f);
+
+		char buf[50];
+		FOR(i, ESZ(boneTransforms)) {
+			sprintf(buf, "gBones[%d]", i);
+			shaderProgram->setUniform(buf, boneTransforms[i]);
+		}
+		IRenderable::mutexShaderProgram = shaderProgram;
+	}
+
 	if (enableAmbient)
 		shaderProgram->setUniform("ambient", &ambient);
 	if (enableDiffuse)
@@ -174,5 +213,20 @@ void oglt::Material::useMaterial()
 		shaderProgram->setUniform("shininessFactor", shininessFactor);
 	if (reflectionFactor)
 		shaderProgram->setUniform("reflectionFactor", reflectionFactor);
+
+	Texture* diffuseTexture = Resource::instance()->getTexture(diffuseTextureId);
+	if (diffuseTexture != NULL) {
+		diffuseTexture->bindTexture();
+	}
+
+	Texture* specularTexture = Resource::instance()->getTexture(specularTextureId);
+	if (specularTexture != NULL) {
+		specularTexture->bindTexture();
+	}
+
+	Texture* toonTexture = Resource::instance()->getTexture(toonTextureId);
+	if (toonTexture != NULL) {
+		toonTexture->bindTexture();
+	}
 }
 

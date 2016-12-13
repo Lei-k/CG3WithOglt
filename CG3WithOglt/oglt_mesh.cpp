@@ -4,7 +4,7 @@ oglt::Mesh::Mesh()
 {
 	startIndex = 0;
 	size = 0;
-	materialIndex = 0;
+	materialId = OGLT_INVALID_MATERIAL_ID;
 	mtlMapMode = NONE;
 }
 
@@ -25,13 +25,13 @@ void oglt::Mesh::buildPolygonsPerMtl(bool clearTriangles)
 
 	Polygon polygon;
 	polygon.startIndex = triangles[0].startIndex;
-	polygon.materialIndex = triangles[0].materialIndex;
+	polygon.materialId = triangles[0].materialId;
 	FOR(i, ESZ(triangles)) {
-		if (polygon.materialIndex != triangles[i].materialIndex) {
+		if (polygon.materialId != triangles[i].materialId) {
 			polygon.size = triangles[i].startIndex - polygon.startIndex;
 			polygons.push_back(polygon);
 			polygon.startIndex = triangles[i].startIndex;
-			polygon.materialIndex = triangles[i].materialIndex;
+			polygon.materialId = triangles[i].materialId;
 		}
 	}
 

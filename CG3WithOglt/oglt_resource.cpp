@@ -2,9 +2,15 @@
 
 using namespace oglt;
 
-vector<ShaderProgram> Resource::shaderPrograms;
-vector<Texture> Resource::textures;
-vector<Material> Resource::materials;
+Resource* Resource::resource;
+
+Resource* Resource::instance()
+{
+	if (resource == NULL) {
+		resource = new Resource();
+	}
+	return resource;
+}
 
 void Resource::initialize()
 {
@@ -42,8 +48,8 @@ uint Resource::addShaderProgram(ShaderProgram & shaderProgram)
 		}
 	}
 	if (shaderProgramId == OGLT_INVALID_SHADER_ID) {
+		shaderProgramId = ESZ(shaderPrograms);
 		shaderPrograms.push_back(shaderProgram);
-		shaderProgramId = ESZ(shaderPrograms) - 1;
 	}
 
 	return shaderProgramId;
@@ -52,8 +58,7 @@ uint Resource::addShaderProgram(ShaderProgram & shaderProgram)
 ShaderProgram * Resource::getShaderProgram(uint shaderId)
 {
 	if (shaderId == OGLT_INVALID_SHADER_ID || shaderId >= ESZ(shaderPrograms)) {
-		// if use invalid shader programId set to default shader program id
-		shaderId = DEFAULT_SHADER_PROGRAM_ID;
+		return nullptr;
 	}
 	return &shaderPrograms[shaderId];
 }
@@ -68,8 +73,26 @@ uint Resource::addTexture(Texture & texture)
 		}
 	}
 	if (textureId == OGLT_INVALID_TEXTURE_ID) {
+		textureId = ESZ(textures);
 		textures.push_back(texture);
-		textureId = ESZ(textures) - 1;
+	}
+	return textureId;
+}
+
+uint oglt::Resource::addTexture(const string & texturePath)
+{
+	uint textureId = OGLT_INVALID_TEXTURE_ID;
+	FOR(i, ESZ(textures)) {
+		if (texturePath == textures[i].getPath()) {
+			textureId = i;
+			break;
+		}
+	}
+	if (textureId == OGLT_INVALID_TEXTURE_ID) {
+		textureId = ESZ(textures);
+		Texture newTexture;
+		newTexture.loadTexture2D(texturePath, true);
+		textures.push_back(newTexture);
 	}
 	return textureId;
 }
@@ -77,7 +100,7 @@ uint Resource::addTexture(Texture & texture)
 Texture * Resource::getTexture(uint textureId)
 {
 	if (textureId == OGLT_INVALID_TEXTURE_ID || textureId >= ESZ(textures)) {
-		return NULL;
+		return nullptr;
 	}
 	return &textures[textureId];
 }
@@ -91,16 +114,35 @@ uint Resource::addMaterial(Material & material)
 		}
 	}
 	if (materialId == OGLT_INVALID_MATERIAL_ID) {
+		materialId = ESZ(materials);
 		materials.push_back(material);
-		materialId = ESZ(materials) - 1;
+		materialMap[material.getName()] = materialId;
 	}
 	return materialId;
 }
 
-Material * Resource::getMaterial(uint materialId)
+Material* Resource::getMaterial(uint materialId)
 {
 	if (materialId == OGLT_INVALID_MATERIAL_ID || materialId >= ESZ(materials)) {
-		materialId = DEFAULT_MATERIAL_ID;
+		return nullptr;
 	}
 	return &materials[materialId];
+}
+
+Material * oglt::Resource::findMaterial(const string & materialName)
+{
+	if (materialMap.find(materialName) != materialMap.end()) {
+		return &materials[materialMap[materialName]];
+	}
+	return nullptr;
+}
+
+Resource::Resource()
+{
+	initialize();
+}
+
+Resource::~Resource()
+{
+	delete resource;
 }

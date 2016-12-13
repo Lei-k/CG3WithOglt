@@ -9,20 +9,30 @@
 namespace oglt {
 	class Resource {
 	public:
-		static void initialize();
-		static uint addShaderProgram(ShaderProgram& shaderProgram);
-		static ShaderProgram* getShaderProgram(uint shaderId);
-		static uint addTexture(Texture& texture);
-		static Texture* getTexture(uint textureId);
-		static uint addMaterial(Material& material);
-		static Material* getMaterial(uint materialId);
+		static Resource* instance();
+
+		void initialize();
+		uint addShaderProgram(ShaderProgram& shaderProgram);
+		ShaderProgram* getShaderProgram(uint shaderId);
+		uint addTexture(Texture& texture);
+		uint addTexture(const string& texturePath);
+		Texture* getTexture(uint textureId);
+		uint addMaterial(Material& material);
+		Material* getMaterial(uint materialId);
+		Material* findMaterial(const string& materialName);
 	private:
 #define DEFAULT_SHADER_PROGRAM_ID 0;
 #define DEFAULT_TEXTURE_ID 0;
 #define DEFAULT_MATERIAL_ID 0;
 
-		static vector<ShaderProgram> shaderPrograms;
-		static vector<Texture> textures;
-		static vector<Material> materials;
+		Resource();
+		~Resource();
+		
+		static Resource* resource;
+
+		vector<ShaderProgram> shaderPrograms;
+		vector<Texture> textures;
+		vector<Material> materials;
+		map<string, uint> materialMap;
 	};
 }

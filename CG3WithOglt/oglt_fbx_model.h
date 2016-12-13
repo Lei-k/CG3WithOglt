@@ -1,7 +1,7 @@
 #pragma once
 
 #include "oglt_irenderable.h"
-#include "oglt_material.h"
+#include "oglt_resource.h"
 #include "oglt_mesh.h"
 #include "oglt_vbo.h"
 
@@ -55,7 +55,8 @@ namespace oglt {
 		void readTangent(FbxMesh* mesh, int ctrlPointIndex, int vertexCounter, glm::vec3* outTangent);
 
 		void connectMtlToMesh(FbxMesh* fbxMesh, Mesh* ogltMesh);
-		void loadMaterial(FbxMesh* mesh, Mesh* ogltMesh);
+		void reconnectMtlToMesh(Mesh* mesh, vector<uint>& newMaterialIds);
+		void loadMaterial(FbxMesh* mesh, vector<uint>& newMaterialIds);
 		void loadMaterialAttribute(FbxSurfaceMaterial* surfaceMaterial, Material* outMaterial);
 		void loadMaterialTexture(FbxSurfaceMaterial* surfaceMaterial, Material* outMaterial);
 		void loadTexture(FbxTexture* texture, MaterialParam param, Material* outMaterial);
@@ -80,7 +81,6 @@ namespace oglt {
 
 		bool loaded;
 		vector<Mesh> meshs;
-		vector<Texture> textures;
 
 		uint vao;
 		VertexBufferObject vertices;
@@ -92,6 +92,7 @@ namespace oglt {
 
 		map<string, uint> boneMapping;
 		vector<BoneInfo> boneInfos;
+		vector<glm::mat4> boneTransforms;
 		vector<FbxNode*> boneNodes;
 
 		float timer;

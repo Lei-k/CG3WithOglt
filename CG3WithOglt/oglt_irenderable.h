@@ -20,6 +20,7 @@ namespace oglt {
 		static glm::mat4* mutexProjMatrix;
 		static glm::mat4* mutexOrthoMatrix;
 		static glm::vec3* mutexSunLightDir;
+		static ShaderProgram* mutexShaderProgram;
 
 	protected:
 		bool visiable = true;

@@ -2,7 +2,6 @@
 
 #include "std_util.h"
 #include "oglt_util.h"
-#include "oglt_material.h"
 #include <glm/glm.hpp>
 
 namespace oglt {
@@ -18,7 +17,7 @@ namespace oglt {
 	struct Triangle {
 		uint vertexIndices[3];
 		uint startIndex;
-		uint materialIndex;
+		uint materialId;
 	};
 
 	// the helper data struct for mesh.
@@ -29,7 +28,7 @@ namespace oglt {
 	struct Polygon {
 		uint startIndex;
 		uint size;
-		uint materialIndex;
+		uint materialId;
 	};
 
 	// the mesh claa use for the model or some can be
@@ -50,10 +49,9 @@ namespace oglt {
 
 		uint startIndex;
 		uint size;
-		uint materialIndex;
+		uint materialId;
 		vector<Triangle> triangles;
 		vector<Polygon> polygons;
-		vector<Material> materials;
 
 		MaterialMappingMode mtlMapMode;
 	private:

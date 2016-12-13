@@ -39,9 +39,6 @@
     <ClInclude Include="oglt_irenderable.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="oglt_material.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
     <ClInclude Include="oglt_mesh.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
@@ -78,6 +75,9 @@
     <ClInclude Include="glut_backend.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
+    <ClInclude Include="oglt_material.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="oglt_assimp_model.cpp">
@@ -93,9 +93,6 @@
       <Filter>原始程式檔</Filter>
     </ClCompile>
     <ClCompile Include="oglt_irenderable.cpp">
-      <Filter>原始程式檔</Filter>
-    </ClCompile>
-    <ClCompile Include="oglt_material.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
     <ClCompile Include="oglt_mesh.cpp">
@@ -135,6 +132,9 @@
       <Filter>原始程式檔</Filter>
     </ClCompile>
     <ClCompile Include="oglt_app.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_material.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
   </ItemGroup>

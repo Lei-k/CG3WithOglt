@@ -23,11 +23,18 @@ namespace oglt {
 		glm::vec3* getColorParam(MaterialParam param);
 		float getFactorParam(MaterialParam param);
 		void linkTexture(MaterialParam param, uint textureId);
-		uint getTextureIndex(MaterialParam param);
+		uint getTextureId(MaterialParam param);
 		void setShaderProgram(ShaderProgram* shaderProgram);
+		ShaderProgram* getShaderProgram();
+
+		void setBoneTransforms(const vector<glm::mat4>& boneTransforms);
+		void setName(const string& materialName);
+		const string& getName();
 
 		void useMaterial();
 	private:
+		string materialName;
+
 		glm::vec3 ambient;
 		glm::vec3 diffuse;
 		glm::vec3 specular;
@@ -44,9 +51,12 @@ namespace oglt {
 		bool enableShininessFactor;
 		bool enableReflectionFactor;
 
-		uint diffuseTextureIndex;
-		uint specularTextureIndex;
-		uint toonTextureIndex;
+		uint diffuseTextureId;
+		uint specularTextureId;
+		uint toonTextureId;
+
+		vector<glm::mat4> boneTransforms;
+
 		ShaderProgram* shaderProgram;
 	};
 }

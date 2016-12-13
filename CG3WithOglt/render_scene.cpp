@@ -103,13 +103,19 @@ void scene::initScene(oglt::IApp* app) {
 	glClearDepth(1.0);
 }
 
+float animTimer = 0.0f;
+
 void scene::renderScene(oglt::IApp* app) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	worldTree.calcNodeHeirarchyTransform();
 	camera.update(cameraUpdateMode);
 
-	testModel.updateAnimation(app->getDeltaTime());
+	animTimer += app->getDeltaTime();
+	if (animTimer >= 0.04f) {
+		testModel.updateAnimation(animTimer);
+		animTimer = 0.0f;
+	}
 
 	worldTree.render(OGLT_RENDER_CHILDREN);
 
