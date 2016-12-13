@@ -4,7 +4,7 @@
 #include "oglt_util.h"
 #include "oglt_shader.h"
 #include "oglt_texture.h"
-#include "oglt_material.h"
+#include "oglt_imaterial.h"
 
 namespace oglt {
 	class Resource {
@@ -17,9 +17,9 @@ namespace oglt {
 		uint addTexture(Texture& texture);
 		uint addTexture(const string& texturePath);
 		Texture* getTexture(uint textureId);
-		uint addMaterial(Material& material);
-		Material* getMaterial(uint materialId);
-		Material* findMaterial(const string& materialName);
+		uint addMaterial(IMaterial* material);
+		IMaterial* getMaterial(uint materialId);
+		IMaterial* findMaterial(const string& materialName);
 	private:
 #define DEFAULT_SHADER_PROGRAM_ID 0;
 #define DEFAULT_TEXTURE_ID 0;
@@ -27,12 +27,10 @@ namespace oglt {
 
 		Resource();
 		~Resource();
-		
-		static Resource* resource;
 
 		vector<ShaderProgram> shaderPrograms;
 		vector<Texture> textures;
-		vector<Material> materials;
+		vector<IMaterial*> materials;
 		map<string, uint> materialMap;
 	};
 }

@@ -2,14 +2,10 @@
 
 using namespace oglt;
 
-Resource* Resource::resource;
-
 Resource* Resource::instance()
 {
-	if (resource == NULL) {
-		resource = new Resource();
-	}
-	return resource;
+	static Resource resource;
+	return &resource;
 }
 
 void Resource::initialize()
@@ -30,9 +26,8 @@ void Resource::initialize()
 
 	shaderPrograms.push_back(spDefault);
 
-	Material defMaterial;
-	defMaterial.setColorParam(DIFFUSE, glm::vec3(0.5f, 0.5f, 0.5f));
-	defMaterial.setShaderProgram(&shaderPrograms[0]);
+	IMaterial* defMaterial = new IMaterial();
+	defMaterial->setShaderProgram(&shaderPrograms[0]);
 
 	materials.push_back(defMaterial);
 }
@@ -105,34 +100,34 @@ Texture * Resource::getTexture(uint textureId)
 	return &textures[textureId];
 }
 
-uint Resource::addMaterial(Material & material)
+uint Resource::addMaterial(IMaterial* material)
 {
 	uint materialId = OGLT_INVALID_MATERIAL_ID;
 	FOR(i, ESZ(materials)) {
-		if (&material == &materials[i]) {
+		if (material == materials[i]) {
 			materialId = i;
 		}
 	}
 	if (materialId == OGLT_INVALID_MATERIAL_ID) {
 		materialId = ESZ(materials);
 		materials.push_back(material);
-		materialMap[material.getName()] = materialId;
+		materialMap[material->getName()] = materialId;
 	}
 	return materialId;
 }
 
-Material* Resource::getMaterial(uint materialId)
+IMaterial* Resource::getMaterial(uint materialId)
 {
 	if (materialId == OGLT_INVALID_MATERIAL_ID || materialId >= ESZ(materials)) {
 		return nullptr;
 	}
-	return &materials[materialId];
+	return materials[materialId];
 }
 
-Material * oglt::Resource::findMaterial(const string & materialName)
+IMaterial * oglt::Resource::findMaterial(const string & materialName)
 {
 	if (materialMap.find(materialName) != materialMap.end()) {
-		return &materials[materialMap[materialName]];
+		return materials[materialMap[materialName]];
 	}
 	return nullptr;
 }
@@ -144,5 +139,7 @@ Resource::Resource()
 
 Resource::~Resource()
 {
-	delete resource;
+	FOR(i, ESZ(materials)) {
+		delete materials[i];
+	}
 }

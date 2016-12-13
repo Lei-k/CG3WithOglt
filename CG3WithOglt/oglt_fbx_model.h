@@ -2,6 +2,7 @@
 
 #include "oglt_irenderable.h"
 #include "oglt_resource.h"
+#include "oglt_skeleton_material.h"
 #include "oglt_mesh.h"
 #include "oglt_vbo.h"
 
@@ -57,9 +58,9 @@ namespace oglt {
 		void connectMtlToMesh(FbxMesh* fbxMesh, Mesh* ogltMesh);
 		void reconnectMtlToMesh(Mesh* mesh, vector<uint>& newMaterialIds);
 		void loadMaterial(FbxMesh* mesh, vector<uint>& newMaterialIds);
-		void loadMaterialAttribute(FbxSurfaceMaterial* surfaceMaterial, Material* outMaterial);
-		void loadMaterialTexture(FbxSurfaceMaterial* surfaceMaterial, Material* outMaterial);
-		void loadTexture(FbxTexture* texture, MaterialParam param, Material* outMaterial);
+		void loadMaterialAttribute(FbxSurfaceMaterial* surfaceMaterial, SkeletonMaterial* outMaterial);
+		void loadMaterialTexture(FbxSurfaceMaterial* surfaceMaterial, SkeletonMaterial* outMaterial);
+		void loadTexture(FbxTexture* texture, MaterialParam param, SkeletonMaterial* outMaterial);
 
 		void connectSkeletonToMesh(FbxMesh* fbxMesh, vector<VertexBoneData>& ctrlPointBones);
 		void connectSkinToMesh(FbxSkin* skin, vector<VertexBoneData>& ctrlPointBones);

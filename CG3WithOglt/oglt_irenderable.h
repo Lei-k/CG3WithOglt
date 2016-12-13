@@ -7,10 +7,10 @@ namespace oglt {
 	class IRenderable {
 	public:
 		virtual void render(int renderType = OGLT_RENDER_SELF) {}
-		virtual void setShaderProgram(ShaderProgram* shaderProgram){
+		void setShaderProgram(ShaderProgram* shaderProgram){
 			this->shaderProgram = shaderProgram;
 		}
-		virtual ShaderProgram* getShaderProgram() {
+		ShaderProgram* getShaderProgram() {
 			return shaderProgram;
 		}
 

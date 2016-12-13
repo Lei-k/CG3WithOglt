@@ -75,7 +75,13 @@
     <ClInclude Include="glut_backend.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="oglt_material.h">
+    <ClInclude Include="oglt_imaterial.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_skeleton_material.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_ishaderable.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>
@@ -134,7 +140,7 @@
     <ClCompile Include="oglt_app.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
-    <ClCompile Include="oglt_material.cpp">
+    <ClCompile Include="oglt_skeleton_material.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
   </ItemGroup>

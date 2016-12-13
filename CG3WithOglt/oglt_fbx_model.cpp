@@ -3,6 +3,8 @@
 #include <fbxsdk\fileio\fbxiosettings.h>
 #include <glm\gtc\matrix_transform.hpp>
 
+#include "oglt_skeleton_material.h"
+
 using namespace oglt;
 using namespace glm;
 
@@ -515,62 +517,62 @@ void FbxModel::loadMaterial(FbxMesh* mesh, vector<oglt::uint>& newMaterialIds)
 	if (materialCount > 0) {
 		FOR(i, materialCount) {
 			FbxSurfaceMaterial* surfaceMaterial = node->GetMaterial(i);
-			Material material;
-			loadMaterialAttribute(surfaceMaterial, &material);
+			SkeletonMaterial* material = new SkeletonMaterial();
+			loadMaterialAttribute(surfaceMaterial, material);
 			uint id = Resource::instance()->addMaterial(material);
 			newMaterialIds.push_back(id);
 		}
 	}
 }
 
-void FbxModel::loadMaterialAttribute(FbxSurfaceMaterial * surfaceMaterial, Material* outMaterial)
+void FbxModel::loadMaterialAttribute(FbxSurfaceMaterial * surfaceMaterial, SkeletonMaterial* outMaterial)
 {
 	outMaterial->setName(surfaceMaterial->GetName());
 	if (surfaceMaterial->GetClassId().Is(FbxSurfacePhong::ClassId)) {
 		FbxSurfacePhong* surfacePhone = (FbxSurfacePhong*)surfaceMaterial;
 		FbxDouble3 fbxColor = surfacePhone->Ambient;
 		vec3 color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
-		outMaterial->setColorParam(AMBIENT, color);
+		outMaterial->setColor(AMBIENT, color);
 		fbxColor = surfacePhone->Diffuse;
 		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
-		outMaterial->setColorParam(DIFFUSE, color);
+		outMaterial->setColor(DIFFUSE, color);
 		fbxColor = surfacePhone->Specular;
 		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
-		outMaterial->setColorParam(SPECULAR, color);
+		outMaterial->setColor(SPECULAR, color);
 		fbxColor = surfacePhone->Emissive;
 		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
-		outMaterial->setColorParam(EMISSIVE, color);
+		outMaterial->setColor(EMISSIVE, color);
 		
 		FbxDouble factor = surfacePhone->TransparencyFactor;
-		outMaterial->setFactorParam(TRANSPARENCY_FACTOR, factor);
+		outMaterial->setFactor(TRANSPARENCY_FACTOR, factor);
 		factor = surfacePhone->Shininess;
-		outMaterial->setFactorParam(SHININESS_FACTOR, factor);
+		outMaterial->setFactor(SHININESS_FACTOR, factor);
 		factor = surfacePhone->ReflectionFactor;
-		outMaterial->setFactorParam(REFLECTION_FACTOR, factor);
+		outMaterial->setFactor(REFLECTION_FACTOR, factor);
 	}
 	else if (surfaceMaterial->GetClassId().Is(FbxSurfaceLambert::ClassId)) {
 		FbxSurfacePhong* surfacePhone = (FbxSurfacePhong*)surfaceMaterial;
 		FbxDouble3 fbxColor = surfacePhone->Ambient;
 		vec3 color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
-		outMaterial->setColorParam(AMBIENT, color);
+		outMaterial->setColor(AMBIENT, color);
 		fbxColor = surfacePhone->Diffuse;
 		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
-		outMaterial->setColorParam(DIFFUSE, color);
+		outMaterial->setColor(DIFFUSE, color);
 		fbxColor = surfacePhone->Specular;
 		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
-		outMaterial->setColorParam(SPECULAR, color);
+		outMaterial->setColor(SPECULAR, color);
 		fbxColor = surfacePhone->Emissive;
 		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
-		outMaterial->setColorParam(EMISSIVE, color);
+		outMaterial->setColor(EMISSIVE, color);
 
 		FbxDouble factor = surfacePhone->TransparencyFactor;
-		outMaterial->setFactorParam(TRANSPARENCY_FACTOR, factor);
+		outMaterial->setFactor(TRANSPARENCY_FACTOR, factor);
 	}
 
 	loadMaterialTexture(surfaceMaterial, outMaterial);
 }
 
-void FbxModel::loadMaterialTexture(FbxSurfaceMaterial * surfaceMaterial, Material * outMaterial)
+void FbxModel::loadMaterialTexture(FbxSurfaceMaterial * surfaceMaterial, SkeletonMaterial * outMaterial)
 {
 	FbxProperty property;
 	property = surfaceMaterial->FindProperty(FbxSurfaceMaterial::sDiffuse);
@@ -593,7 +595,7 @@ void FbxModel::loadMaterialTexture(FbxSurfaceMaterial * surfaceMaterial, Materia
 	}
 }
 
-void FbxModel::loadTexture(FbxTexture * texture, MaterialParam param, Material * outMaterial)
+void FbxModel::loadTexture(FbxTexture * texture, MaterialParam param, SkeletonMaterial * outMaterial)
 {
 	if (texture) {
 		FbxFileTexture* fileTexture = FbxCast<FbxFileTexture>(texture);
@@ -729,7 +731,7 @@ void FbxModel::updateAnimation(float deltaTime)
 	}
 	FOR(i, ESZ(meshs)) {
 		FOR(j, ESZ(meshs[i].polygons)) {
-			Material* material = Resource::instance()->getMaterial(meshs[i].polygons[j].materialId);
+			ISkeletonMaterial* material = dynamic_cast<ISkeletonMaterial*>(Resource::instance()->getMaterial(meshs[i].polygons[j].materialId));
 			if (material != NULL) {
 				material->setBoneTransforms(boneTransforms);
 			}
@@ -836,7 +838,7 @@ void FbxModel::render(int renderType)
 		else if (meshs[i].mtlMapMode == BY_POLYGON) {
 			// test rendering with per polygon, the fps still on 1300
 			FOR(j, ESZ(meshs[i].polygons)) {
-				Material* material = Resource::instance()->getMaterial(meshs[i].polygons[j].materialId);
+				IMaterial* material = Resource::instance()->getMaterial(meshs[i].polygons[j].materialId);
 				if (material != NULL) {
 					if (material->getShaderProgram() == NULL) {
 						material->setShaderProgram(shaderProgram);
