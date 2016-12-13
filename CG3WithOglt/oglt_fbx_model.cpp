@@ -14,6 +14,7 @@ FbxModel::FbxModel()
 {
 	loaded = false;
 	timer = 0.0f;
+	hasAnimation = false;
 }
 
 FbxModel::~FbxModel()
@@ -249,7 +250,9 @@ void FbxModel::processMesh(FbxNode * node)
 	}
 
 	connectSkeletonToMesh(mesh, ctrlPointBones);
-	mapVertexBoneFromCtrlPoint(ctrlPointBones, ctrlPointIndices);
+	if (hasAnimation) {
+		mapVertexBoneFromCtrlPoint(ctrlPointBones, ctrlPointIndices);
+	}
 
 	vector<uint> newMaterialIds;
 	connectMtlToMesh(mesh, &meshEntry);
@@ -631,6 +634,8 @@ void FbxModel::connectSkinToMesh(FbxSkin* skin, vector<VertexBoneData>& ctrlPoin
 	FbxCluster* cluster;
 	FbxNode* node;
 	FbxAMatrix transformMatrix, linkMatrix;
+
+	hasAnimation = true;
 	
 	FOR(i, skin->GetClusterCount()) {
 		cluster = skin->GetCluster(i);
@@ -707,6 +712,9 @@ void FbxModel::readNodeCurve(FbxAnimLayer * animLayer, FbxAnimEvaluator* animEva
 
 void FbxModel::updateAnimation(float deltaTime)
 {
+	if (!hasAnimation)
+		return;
+
 	timer += deltaTime;
 
 	FbxAnimStack* animStack = scene->GetSrcObject<FbxAnimStack>(0);
@@ -767,6 +775,9 @@ void FbxModel::finalizeVBO()
 	uvs[0].uploadDataToGPU(GL_STATIC_DRAW);
 	glEnableVertexAttribArray(3);
 	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+	if (!hasAnimation)
+		return;
 
 	// vertex bone indices
 	boneIndices.bindVBO();

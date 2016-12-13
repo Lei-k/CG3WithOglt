@@ -106,6 +106,7 @@ uint Resource::addMaterial(IMaterial* material)
 	FOR(i, ESZ(materials)) {
 		if (material == materials[i]) {
 			materialId = i;
+			break;
 		}
 	}
 	if (materialId == OGLT_INVALID_MATERIAL_ID) {

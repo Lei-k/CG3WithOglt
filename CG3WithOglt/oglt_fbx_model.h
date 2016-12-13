@@ -102,5 +102,7 @@ namespace oglt {
 		static FbxManager* manager;
 		FbxImporter* importer;
 		FbxScene* scene;
+
+		bool hasAnimation;
 	};
 }

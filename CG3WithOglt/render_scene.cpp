@@ -23,8 +23,8 @@ SceneObject worldTree, cityObj, rObj, testObj;
 AssimpModel cityModel, rModel;
 FbxModel testModel;
 
-Shader ortho, font, vtMain, fgMain, dirLight, vtFbx, fgFbx;
-ShaderProgram spFont, spMain, spFbx;
+Shader ortho, font, vtMain, fgMain, dirLight, vtSkin, fgSkin;
+ShaderProgram spFont, spMain, spSkin;
 
 vec3 sunDir = vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0);
 
@@ -38,8 +38,8 @@ void scene::initScene(oglt::IApp* app) {
 	vtMain.loadShader("data/shaders/main_shader.vert", GL_VERTEX_SHADER);
 	fgMain.loadShader("data/shaders/main_shader.frag", GL_FRAGMENT_SHADER);
 	dirLight.loadShader("data/shaders/dirLight.frag", GL_FRAGMENT_SHADER);
-	vtFbx.loadShader("data/shaders/fbx_shader.vert", GL_VERTEX_SHADER);
-	fgFbx.loadShader("data/shaders/fbx_shader.frag", GL_FRAGMENT_SHADER);
+	vtSkin.loadShader("data/shaders/skinning_shader.vert", GL_VERTEX_SHADER);
+	fgSkin.loadShader("data/shaders/skinning_shader.frag", GL_FRAGMENT_SHADER);
 
 	spFont.createProgram();
 	spFont.addShaderToProgram(&ortho);
@@ -52,11 +52,11 @@ void scene::initScene(oglt::IApp* app) {
 	spMain.addShaderToProgram(&fgMain);
 	spMain.linkProgram();
 
-	spFbx.createProgram();
-	spFbx.addShaderToProgram(&vtFbx);
-	spFbx.addShaderToProgram(&dirLight);
-	spFbx.addShaderToProgram(&fgFbx);
-	spFbx.linkProgram();
+	spSkin.createProgram();
+	spSkin.addShaderToProgram(&vtSkin);
+	spSkin.addShaderToProgram(&dirLight);
+	spSkin.addShaderToProgram(&fgSkin);
+	spSkin.linkProgram();
 
 	ftFont.loadFont("data/fonts/SugarpunchDEMO.otf", 32);
 	ftFont.setShaderProgram(&spFont);
@@ -88,9 +88,8 @@ void scene::initScene(oglt::IApp* app) {
 	// Test the fbx model loading
 	// developing...
 	testModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
-	testModel.setShaderProgram(&spFbx);
 	testObj.addRenderObj(&testModel);
-	testObj.setShaderProgram(&spFbx);
+	testObj.setShaderProgram(&spSkin);
 	testObj.getLocalTransform()->position = vec3(0.0f, 50.0f, 0.0f);
 	cityObj.addChild(&testObj);
 
@@ -164,9 +163,9 @@ void scene::releaseScene(oglt::IApp* app) {
 	vtMain.deleteShader();
 	fgMain.deleteShader();
 
-	spFbx.deleteProgram();
-	vtFbx.deleteShader();
-	fgFbx.deleteShader();
+	spSkin.deleteProgram();
+	vtSkin.deleteShader();
+	fgSkin.deleteShader();
 	dirLight.deleteShader();
 
 	FbxModel::destroyManager();
