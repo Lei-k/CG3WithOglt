@@ -166,11 +166,8 @@ void oglt::SkeletonMaterial::useMaterial()
 		shaderProgram->setUniform("sunLight.fAmbient", 1.0f);
 
 		if (IRenderable::mutexBoneTransforms != NULL) {
-			char buf[50];
-			for (int i = 0; i < IRenderable::mutexBoneTransforms->size(); i++) {
-				sprintf(buf, "gBones[%d]", i);
-				shaderProgram->setUniform(buf, IRenderable::mutexBoneTransforms->at(i));
-			}
+			vector<glm::mat4>* boneTransforms = IRenderable::mutexBoneTransforms;
+			shaderProgram->setUniform("gBones", &boneTransforms->at(0), boneTransforms->size());
 		}
 		IRenderable::mutexShaderProgram = shaderProgram;
 	}
