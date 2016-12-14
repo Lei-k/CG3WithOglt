@@ -76,22 +76,27 @@ void SceneNode::addChild(SceneNode * child)
 void SceneNode::removeChild(SceneNode * child)
 {
 	SceneNode* node = this->child;
+	SceneNode* preNode = NULL;
 	while (node != child && node != NULL) {
-		removeChild(node);
+		preNode = node;
 		node = child->brother;
 	}
-	if (node != NULL) {
-		if (node->brother != NULL) {
-			node->parent->child = node->brother;
+	if (node == NULL) return;
+	
+	if (node->brother != NULL) {
+		if (preNode != NULL) {
+			preNode->brother = node->brother;
 		}
-		if (node->child != NULL) {
-			SceneNode* childNode = node->child;
-			parent->addChild(childNode);
-			SceneNode* brotherNode = childNode->brother;
-			while (brotherNode != NULL) {
-				brotherNode->parent = node->parent;
-				brotherNode = brotherNode->brother;
-			}
+		else {
+			parent->child = node->brother;
+		}
+	}
+	else {
+		if (preNode != NULL) {
+			preNode->brother = NULL;
+		}
+		else {
+			parent->child = NULL;
 		}
 	}
 }
