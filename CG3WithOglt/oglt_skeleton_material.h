@@ -3,19 +3,18 @@
 #include "oglt_imaterial.h"
 
 namespace oglt {
-	class SkeletonMaterial : public ISkeletonMaterial, IColorMaterial, IFactorMaterial
-		, ITexturedMaterial {
+	class SkeletonMaterial : public IMaterial {
 	public:
 		SkeletonMaterial();
 		~SkeletonMaterial();
 
-		void setColor(MaterialParam param, glm::vec3& color);
-		void setFactor(MaterialParam param, float Factor);
+		virtual void setColor(MaterialParam param, glm::vec3& color);
+		virtual void setFactor(MaterialParam param, float Factor);
 
-		glm::vec3* getColor(MaterialParam param);
-		float getFactor(MaterialParam param);
-		void linkTexture(MaterialParam param, uint textureId);
-		uint getTextureId(MaterialParam param);
+		virtual glm::vec3* getColor(MaterialParam param);
+		virtual float getFactor(MaterialParam param);
+		virtual void linkTexture(MaterialParam param, uint textureId);
+		virtual uint getTextureId(MaterialParam param);
 
 		virtual void useMaterial();
 	private:

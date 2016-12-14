@@ -165,10 +165,12 @@ void oglt::SkeletonMaterial::useMaterial()
 		shaderProgram->setUniform("sunLight.vDirection", IRenderable::mutexSunLightDir);
 		shaderProgram->setUniform("sunLight.fAmbient", 1.0f);
 
-		char buf[50];
-		FOR(i, ESZ(boneTransforms)) {
-			sprintf(buf, "gBones[%d]", i);
-			shaderProgram->setUniform(buf, boneTransforms[i]);
+		if (IRenderable::mutexBoneTransforms != NULL) {
+			char buf[50];
+			for (int i = 0; i < IRenderable::mutexBoneTransforms->size(); i++) {
+				sprintf(buf, "gBones[%d]", i);
+				shaderProgram->setUniform(buf, IRenderable::mutexBoneTransforms->at(i));
+			}
 		}
 		IRenderable::mutexShaderProgram = shaderProgram;
 	}

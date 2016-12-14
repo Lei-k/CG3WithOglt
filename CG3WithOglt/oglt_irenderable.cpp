@@ -9,3 +9,4 @@ glm::mat4 *IRenderable::mutexProjMatrix;
 glm::mat4 *IRenderable::mutexOrthoMatrix;
 glm::vec3* IRenderable::mutexSunLightDir;
 ShaderProgram* IRenderable::mutexShaderProgram;
+vector<glm::mat4>* IRenderable::mutexBoneTransforms;

@@ -20,6 +20,7 @@ namespace oglt {
 		static bool initialize();
 		static void destroyManager();
 		bool load(const string& fileName);
+		vector<Mesh>* getMeshs();
 		void updateAnimation(float deltaTime);
 		void setTimer(float timer);
 
@@ -58,15 +59,13 @@ namespace oglt {
 		void connectMtlToMesh(FbxMesh* fbxMesh, Mesh* ogltMesh);
 		void reconnectMtlToMesh(Mesh* mesh, vector<uint>& newMaterialIds);
 		void loadMaterial(FbxMesh* mesh, vector<uint>& newMaterialIds);
-		void loadMaterialAttribute(FbxSurfaceMaterial* surfaceMaterial, SkeletonMaterial* outMaterial);
-		void loadMaterialTexture(FbxSurfaceMaterial* surfaceMaterial, SkeletonMaterial* outMaterial);
-		void loadTexture(FbxTexture* texture, MaterialParam param, SkeletonMaterial* outMaterial);
+		void loadMaterialAttribute(FbxSurfaceMaterial* surfaceMaterial, IMaterial* outMaterial);
+		void loadMaterialTexture(FbxSurfaceMaterial* surfaceMaterial, IMaterial* outMaterial);
+		void loadTexture(FbxTexture* texture, MaterialParam param, IMaterial* outMaterial);
 
 		void connectSkeletonToMesh(FbxMesh* fbxMesh, vector<VertexBoneData>& ctrlPointBones);
 		void connectSkinToMesh(FbxSkin* skin, vector<VertexBoneData>& ctrlPointBones);
 		void mapVertexBoneFromCtrlPoint(vector<VertexBoneData>& ctrlPointBones, vector<int>& ctrlPointIndices);
-
-		void readNodeCurve(FbxAnimLayer* animLayer, FbxAnimEvaluator* animEvaluator, FbxNode* node, FbxTime& time);
 
 		void finalizeVBO();
 
@@ -104,5 +103,6 @@ namespace oglt {
 		FbxScene* scene;
 
 		bool hasAnimation;
+		string sPath;
 	};
 }

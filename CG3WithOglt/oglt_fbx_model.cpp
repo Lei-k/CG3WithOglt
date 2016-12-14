@@ -48,6 +48,11 @@ void FbxModel::destroyManager()
 	manager->Destroy();
 }
 
+vector<Mesh>* FbxModel::getMeshs()
+{
+	return &meshs;
+}
+
 void FbxModel::setTimer(float timer)
 {
 	this->timer = timer;
@@ -110,6 +115,8 @@ bool FbxModel::load(const string & fileName)
 	importer->Destroy();
 	importer = NULL;
 
+	sPath = fileName;
+
 	loadFromScene(scene);
 
 	loaded = true;
@@ -145,6 +152,10 @@ bool FbxModel::load(const string & fileName)
 				cout << "polygon " << j << " start index: " << meshs[i].polygons[j].startIndex << endl;
 				cout << "polygon " << j << " size: " << meshs[i].polygons[j].size << endl;
 				cout << "polygon " << j << " material index: " << meshs[i].polygons[j].materialId << endl;
+				IMaterial* material = Resource::instance()->getMaterial(meshs[i].polygons[j].materialId);
+				if (material != NULL) {
+					cout << "polygon " << j << " material name: " << material->getName() << endl;
+				}
 			}
 		}
 		cout << endl;
@@ -528,9 +539,9 @@ void FbxModel::loadMaterial(FbxMesh* mesh, vector<oglt::uint>& newMaterialIds)
 	}
 }
 
-void FbxModel::loadMaterialAttribute(FbxSurfaceMaterial * surfaceMaterial, SkeletonMaterial* outMaterial)
+void FbxModel::loadMaterialAttribute(FbxSurfaceMaterial * surfaceMaterial, IMaterial* outMaterial)
 {
-	outMaterial->setName(surfaceMaterial->GetName());
+	outMaterial->setName(sPath + " mat: " + surfaceMaterial->GetName());
 	if (surfaceMaterial->GetClassId().Is(FbxSurfacePhong::ClassId)) {
 		FbxSurfacePhong* surfacePhone = (FbxSurfacePhong*)surfaceMaterial;
 		FbxDouble3 fbxColor = surfacePhone->Ambient;
@@ -575,7 +586,7 @@ void FbxModel::loadMaterialAttribute(FbxSurfaceMaterial * surfaceMaterial, Skele
 	loadMaterialTexture(surfaceMaterial, outMaterial);
 }
 
-void FbxModel::loadMaterialTexture(FbxSurfaceMaterial * surfaceMaterial, SkeletonMaterial * outMaterial)
+void FbxModel::loadMaterialTexture(FbxSurfaceMaterial * surfaceMaterial, IMaterial * outMaterial)
 {
 	FbxProperty property;
 	property = surfaceMaterial->FindProperty(FbxSurfaceMaterial::sDiffuse);
@@ -598,7 +609,7 @@ void FbxModel::loadMaterialTexture(FbxSurfaceMaterial * surfaceMaterial, Skeleto
 	}
 }
 
-void FbxModel::loadTexture(FbxTexture * texture, MaterialParam param, SkeletonMaterial * outMaterial)
+void FbxModel::loadTexture(FbxTexture * texture, MaterialParam param, IMaterial * outMaterial)
 {
 	if (texture) {
 		FbxFileTexture* fileTexture = FbxCast<FbxFileTexture>(texture);
@@ -692,24 +703,6 @@ void FbxModel::mapVertexBoneFromCtrlPoint(vector<VertexBoneData>& ctrlPointBones
 	}
 }
 
-void FbxModel::readNodeCurve(FbxAnimLayer * animLayer, FbxAnimEvaluator* animEvaluator, FbxNode * node, FbxTime& time)
-{
-	if (node == NULL) return;
-
-	string nodeName = node->GetName();
-	if (boneMapping.find(nodeName) != boneMapping.end()) {
-		FbxMatrix localMatrix = animEvaluator->GetNodeLocalTransform(node, time);
-		FbxMatrix globalMatrix = animEvaluator->GetNodeGlobalTransform(node, time);
-
-		uint boneIndex = boneMapping[nodeName];
-		boneInfos[boneIndex].finalTransform = toGlmMatrix(globalMatrix) * boneInfos[boneIndex].boneOffset;
-	}
-
-	FOR(i, node->GetChildCount()) {
-		readNodeCurve(animLayer, animEvaluator, node->GetChild(i), time);
-	}
-}
-
 void FbxModel::updateAnimation(float deltaTime)
 {
 	if (!hasAnimation)
@@ -736,14 +729,6 @@ void FbxModel::updateAnimation(float deltaTime)
 		
 		boneInfos[i].finalTransform = toGlmMatrix(globalMatrix) * boneInfos[i].boneOffset;
 		boneTransforms.push_back(boneInfos[i].finalTransform);
-	}
-	FOR(i, ESZ(meshs)) {
-		FOR(j, ESZ(meshs[i].polygons)) {
-			ISkeletonMaterial* material = dynamic_cast<ISkeletonMaterial*>(Resource::instance()->getMaterial(meshs[i].polygons[j].materialId));
-			if (material != NULL) {
-				material->setBoneTransforms(boneTransforms);
-			}
-		}
 	}
 }
 
@@ -838,6 +823,8 @@ void FbxModel::render(int renderType)
 	if (!loaded)
 		return;
 
+	mutexBoneTransforms = &boneTransforms;
+
 	glBindVertexArray(vao);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -863,13 +850,7 @@ void FbxModel::render(int renderType)
 	glDisable(GL_BLEND);
 
 	mutexShaderProgram = NULL;
-
-	// test rendering with per triangle, the fps reduce from 1300 to 55
-	/*FOR(i, ESZ(meshs)) {
-		FOR(j, ESZ(meshs[i].triangles)) {
-			glDrawArrays(GL_TRIANGLES, meshs[i].triangles[j].startIndex, 3);
-		}
-	}*/
+	mutexBoneTransforms = NULL;
 }
 
 void FbxModel::VertexBoneData::addBoneData(oglt::uint boneIndex, float weight)

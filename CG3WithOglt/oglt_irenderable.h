@@ -2,17 +2,12 @@
 
 #include "oglt_util.h"
 #include "oglt_shader.h"
+#include "oglt_ishaderable.h"
 
 namespace oglt {
-	class IRenderable {
+	class IRenderable : public IShaderable {
 	public:
 		virtual void render(int renderType = OGLT_RENDER_SELF) {}
-		void setShaderProgram(ShaderProgram* shaderProgram){
-			this->shaderProgram = shaderProgram;
-		}
-		ShaderProgram* getShaderProgram() {
-			return shaderProgram;
-		}
 
 		static uint mutexShaderProgramId;
 		static glm::mat4* mutexModelMatrix;
@@ -21,9 +16,9 @@ namespace oglt {
 		static glm::mat4* mutexOrthoMatrix;
 		static glm::vec3* mutexSunLightDir;
 		static ShaderProgram* mutexShaderProgram;
+		static vector<glm::mat4>* mutexBoneTransforms;
 
 	protected:
 		bool visiable = true;
-		ShaderProgram* shaderProgram;
 	};
 }

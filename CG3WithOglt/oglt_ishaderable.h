@@ -5,11 +5,11 @@
 namespace oglt {
 	class IShaderable {
 	public:
-		inline void setShaderProgram(ShaderProgram* _shaderProgram) {
+		void setShaderProgram(ShaderProgram* _shaderProgram) {
 			shaderProgram = _shaderProgram;
 		}
 
-		inline ShaderProgram* getShaderProgram() {
+		ShaderProgram* getShaderProgram() {
 			return shaderProgram;
 		}
 	protected:
