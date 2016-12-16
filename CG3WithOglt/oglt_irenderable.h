@@ -17,6 +17,7 @@ namespace oglt {
 		static glm::vec3* mutexSunLightDir;
 		static ShaderProgram* mutexShaderProgram;
 		static vector<glm::mat4>* mutexBoneTransforms;
+		static glm::vec3* mutexCameraPos;
 
 	protected:
 		bool visiable = true;

@@ -9,6 +9,7 @@ using namespace oglt;
 Texture::Texture()
 {
 	bMipMapsGenerated = false;
+	textureType = TEXTURE_2D;
 }
 
 /*-----------------------------------------------
@@ -118,6 +119,8 @@ bool Texture::loadTexture2D(string a_sPath, bool bGenerateMipMaps)
 
 	sPath = a_sPath;
 
+	textureType = TEXTURE_2D;
+
 	return true; // Success
 }
 
@@ -175,12 +178,25 @@ Params:	iTextureUnit - texture unit to bind texture to
 Result:	Guess what it does :)
 
 /*---------------------------------------------*/
-
 void Texture::bindTexture(int iTextureUnit)
 {
 	glActiveTexture(GL_TEXTURE0 + iTextureUnit);
 	glBindTexture(GL_TEXTURE_2D, textureId);
 	glBindSampler(iTextureUnit, samplerId);
+	switch (textureType)
+	{
+	case TEXTURE_2D:
+		glActiveTexture(GL_TEXTURE0 + iTextureUnit);
+		glBindTexture(GL_TEXTURE_2D, textureId);
+		glBindSampler(iTextureUnit, samplerId);
+		break;
+	case CUBE_MAP:
+		glActiveTexture(GL_TEXTURE0 + iTextureUnit);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
+		break;
+	default:
+		break;
+	}
 }
 
 /*-----------------------------------------------
@@ -244,6 +260,11 @@ string Texture::getPath()
 	return sPath;
 }
 
+Texture_Type Texture::getType()
+{
+	return textureType;
+}
+
 bool Texture::reloadTexture()
 {
 	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
@@ -281,4 +302,100 @@ bool Texture::reloadTexture()
 	FreeImage_Unload(dib);
 
 	return true; // Success
+}
+
+bool Texture::createCubeMapFromData(string FilePath, int i)
+{
+	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
+	FIBITMAP* dib(0);
+	cout << "Load fron " << FilePath << endl;
+	fif = FreeImage_GetFileType(FilePath.c_str(), 0);
+
+	if (fif == FIF_UNKNOWN) // If still unknown, try to guess the file format from the file extension
+		fif = FreeImage_GetFIFFromFilename(FilePath.c_str());
+
+	if (fif == FIF_UNKNOWN) // If still unknown, return failure
+		return false;
+
+	if (FreeImage_FIFSupportsReading(fif)) // Check if the plugin has reading capabilities and load the file
+		dib = FreeImage_Load(fif, FilePath.c_str());
+
+	if (!dib)
+		return false;
+
+	GLubyte* bDataPointer = (GLubyte*)FreeImage_GetBits(dib); // Retrieve the image data
+
+	if (bDataPointer == NULL || FreeImage_GetWidth(dib) == 0 || FreeImage_GetHeight(dib) == 0)
+		return false;
+	int W, H;
+	GLenum format;
+	W = FreeImage_GetWidth(dib);
+	H = FreeImage_GetHeight(dib);
+	if (FreeImage_GetBPP(dib) == 32)
+	{
+		//cout << "GL_BGRA\n";
+		format = GL_BGRA;
+	}
+	if (FreeImage_GetBPP(dib) == 24)
+	{
+		//cout << "GL_BGR\n";
+		format = GL_BGR;
+	}if (FreeImage_GetBPP(dib) == 8)
+	{
+		//cout << "GL_LUM\n";
+		format = GL_LUMINANCE;
+	}
+	if (format == GL_RGBA || format == GL_BGRA)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i
+			, 0, GL_RGBA, W, H, 0, format, GL_UNSIGNED_BYTE, bDataPointer);
+	}
+
+	else if (format == GL_RGB || format == GL_BGR) {
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i
+			, 0, GL_RGB, W, H, 0, format, GL_UNSIGNED_BYTE, bDataPointer);
+	}
+	else
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i
+			, 0, format, W, H, 0, format, GL_UNSIGNED_BYTE, bDataPointer);
+	}
+
+	//cout << "cubemap"<<i<<endl;
+	FreeImage_Unload(dib);
+
+	return true;
+
+}
+bool Texture::loadTexture(string front, string back, string right, string left, string up, string down) {
+	std::vector<std::string> faces;
+	faces.push_back(right);
+	faces.push_back(left);
+	faces.push_back(down);
+	faces.push_back(up);
+	faces.push_back(back);
+	faces.push_back(front);
+
+	glGenTextures(1, &this->textureId);
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, this->textureId);
+
+	cout << "load Cube Texture\n";
+	for (int i = 0; i < faces.size(); i++)
+	{
+		createCubeMapFromData(faces[i], i);
+	}
+
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+	textureType = CUBE_MAP;
+
+	return true;
 }

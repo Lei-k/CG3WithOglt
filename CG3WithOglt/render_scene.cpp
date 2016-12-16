@@ -97,6 +97,7 @@ void scene::initScene(oglt::IApp* app) {
 	IRenderable::mutexProjMatrix = app->getProj();
 	IRenderable::mutexOrthoMatrix = app->getOrth();
 	IRenderable::mutexSunLightDir = &sunDir;
+	IRenderable::mutexCameraPos = &camera.getWorldTransform()->position;
 
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);

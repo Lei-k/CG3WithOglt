@@ -14,6 +14,12 @@ enum ETextureFiltering
 	TEXTURE_FILTER_MIN_TRILINEAR, // Bilinear criterion for minification on two closest mipmaps, then averaged
 };
 
+enum Texture_Type
+{
+	TEXTURE_2D = 0, 
+	CUBE_MAP
+};
+
 /********************************
 
 Class:		Texture
@@ -32,28 +38,33 @@ namespace oglt {
 
 		bool reloadTexture();
 
+		//Load Cube Map Texture   
+		bool loadTexture(string front, string back, string right, string left, string up, string down);
+		//Load Texture2D
 		bool loadTexture2D(string a_sPath, bool bGenerateMipMaps = false);
+		
+		void setSamplerParameter(GLenum parameter, GLenum value);
+		void setFiltering(int a_tfMagnification, int a_tfMinification);
+	
 		void bindTexture(int iTextureUnit = 0);
 
-		void setFiltering(int a_tfMagnification, int a_tfMinification);
+		 int getMinificationFilter();
+		 int getMagnificationFilter();
 
-		void setSamplerParameter(GLenum parameter, GLenum value);
+		 int getWidth();
+		 int getHeight();
+		 int getBPP();
 
-		int getMinificationFilter();
-		int getMagnificationFilter();
+		 uint getTextureID();
 
-		int getWidth();
-		int getHeight();
-		int getBPP();
+		 string getPath();
+		 Texture_Type getType();
 
-		uint getTextureID();
+		 void deleteTexture();
 
-		string getPath();
-
-		void deleteTexture();
-
-		Texture();
+		 Texture();
 	private:
+		bool createCubeMapFromData(string FilePath, int i);
 
 		int width, height, iBPP; // Texture width, height, and bytes per pixel
 		uint textureId; // Texture name
@@ -63,5 +74,7 @@ namespace oglt {
 		int tfMinification, tfMagnification;
 
 		string sPath;
+
+		Texture_Type textureType;
 	};
 }
