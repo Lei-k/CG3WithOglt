@@ -167,7 +167,9 @@ void oglt::SkeletonMaterial::useMaterial()
 
 		if (IRenderable::mutexBoneTransforms != NULL) {
 			vector<glm::mat4>* boneTransforms = IRenderable::mutexBoneTransforms;
-			shaderProgram->setUniform("gBones", &boneTransforms->at(0), boneTransforms->size());
+			if (boneTransforms->size() > 0) {
+				shaderProgram->setUniform("gBones", &boneTransforms->at(0), boneTransforms->size());
+			}
 		}
 		IRenderable::mutexShaderProgram = shaderProgram;
 	}

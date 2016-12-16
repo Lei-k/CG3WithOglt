@@ -21,6 +21,8 @@ namespace oglt {
 			void load(string a_sDirectory, string a_sFront, string a_sBack, string a_sLeft, string a_sRight, string a_sTop, string a_sBottom);
 			virtual void render(int renderType = OGLT_RENDER_SELF);
 
+			bool operator==(const Skybox& other);
+
 			void deleteSkybox();
 		private:
 			uint vao;

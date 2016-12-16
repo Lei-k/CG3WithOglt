@@ -60,6 +60,8 @@ void SceneNode::calcNodeHeirarchyTransform()
 
 void SceneNode::addChild(SceneNode * child)
 {
+	if (child == NULL) return;
+
 	if (this->child == NULL) {
 		this->child = child;
 	}
@@ -75,6 +77,8 @@ void SceneNode::addChild(SceneNode * child)
 
 void SceneNode::removeChild(SceneNode * child)
 {
+	if (child == NULL) return;
+
 	SceneNode* node = this->child;
 	SceneNode* preNode = NULL;
 	while (node != child && node != NULL) {
@@ -88,7 +92,7 @@ void SceneNode::removeChild(SceneNode * child)
 			preNode->brother = node->brother;
 		}
 		else {
-			parent->child = node->brother;
+			this->child = node->brother;
 		}
 	}
 	else {
@@ -96,7 +100,7 @@ void SceneNode::removeChild(SceneNode * child)
 			preNode->brother = NULL;
 		}
 		else {
-			parent->child = NULL;
+			this->child = NULL;
 		}
 	}
 }

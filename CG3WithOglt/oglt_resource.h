@@ -5,6 +5,7 @@
 #include "oglt_shader.h"
 #include "oglt_texture.h"
 #include "oglt_imaterial.h"
+#include "oglt_skybox.h"
 
 namespace oglt {
 	class Resource {
@@ -20,6 +21,8 @@ namespace oglt {
 		uint addMaterial(IMaterial* material);
 		IMaterial* getMaterial(uint materialId);
 		IMaterial* findMaterial(const string& materialName);
+		uint addSkybox(const scene::Skybox& skybox);
+		scene::Skybox* getSkybox(uint skyboxId);
 	private:
 #define DEFAULT_SHADER_PROGRAM_ID 0;
 #define DEFAULT_TEXTURE_ID 0;
@@ -32,5 +35,6 @@ namespace oglt {
 		vector<Texture> textures;
 		vector<IMaterial*> materials;
 		map<string, uint> materialMap;
+		vector<scene::Skybox> skyboxes;
 	};
 }

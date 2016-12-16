@@ -16,17 +16,21 @@ using namespace oglt::scene;
 
 using namespace glm;
 
+#define SKYBOX_NUM 5
+
 FreeTypeFont ftFont;
-Skybox skybox;
 FlyingCamera camera;
-SceneObject worldTree, cityObj, rObj, testObj;
+SceneObject worldTree, cityObj, rObj, testObj, stageObj;
 AssimpModel cityModel, rModel;
-FbxModel testModel;
+FbxModel testModel, stageModel;
 
 Shader ortho, font, vtMain, fgMain, dirLight, vtSkin, fgSkin;
 ShaderProgram spFont, spMain, spSkin;
 
 vec3 sunDir = vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0);
+
+vector<oglt::uint> skyboxIds;
+oglt::uint skyboxIndex;
 
 int cameraUpdateMode = OGLT_UPDATEA_CAMERA_WALK | OGLT_UPDATE_CAMERA_ROTATE;
 
@@ -60,14 +64,32 @@ void scene::initScene(oglt::IApp* app) {
 
 	ftFont.loadFont("data/fonts/SugarpunchDEMO.otf", 32);
 	ftFont.setShaderProgram(&spFont);
-	
-	skybox.load("data/skyboxes/jajlands1/", "jajlands1_ft.jpg", "jajlands1_bk.jpg", "jajlands1_lf.jpg", "jajlands1_rt.jpg", "jajlands1_up.jpg", "jajlands1_dn.jpg");
-	skybox.setShaderProgram(&spMain);
-	skybox.getLocalTransform()->scale = vec3(10.0f, 10.0f, 10.0f);
+
+	string skyboxPaths[SKYBOX_NUM * 7] = { "data/skyboxes/elbrus/" , "elbrus_front.jpg" , "elbrus_back.jpg" , "elbrus_right.jpg",
+		"elbrus_right.jpg" , "elbrus_top.jpg", "elbrus_top.jpg" ,
+		"data/skyboxes/jajlands1/", "jajlands1_ft.jpg", "jajlands1_bk.jpg", "jajlands1_lf.jpg",
+		"jajlands1_rt.jpg", "jajlands1_up.jpg", "jajlands1_dn.jpg",
+		"data/skyboxes/jf_nuke/", "nuke_ft.tga", "nuke_bk.tga", "nuke_lf.tga",
+		"nuke_rt.tga", "nuke_up.tga", "nuke_dn.tga",
+		"data/skyboxes/sor_borg/", "borg_ft.tga", "borg_bk.jpg",
+		"borg_lf.jpg", "borg_rt.jpg", "borg_up.jpg", "borg_up.jpg" ,
+		"data/skyboxes/sor_cwd/", "cwd_ft.jpg", "cwd_bk.jpg", "cwd_lf.jpg",
+		"cwd_lf.jpg", "cwd_up.jpg", "cwd_dn.jpg" };
+
+	FOR(i, SKYBOX_NUM) {
+		Skybox skybox;
+		skybox.load(skyboxPaths[i * 7], skyboxPaths[i * 7 + 1], skyboxPaths[i * 7 + 2], skyboxPaths[i * 7 + 3], skyboxPaths[i * 7 + 4], skyboxPaths[i * 7 + 5], skyboxPaths[i * 7 + 6]);
+		skybox.setShaderProgram(&spMain);
+		skybox.getLocalTransform()->scale = vec3(10.0f, 10.0f, 10.0f);
+		uint skyboxId = Resource::instance()->addSkybox(skybox);
+		skyboxIds.push_back(skyboxId);
+	}
+
+	skyboxIndex = skyboxIds.size() - 1;
 
 	camera = FlyingCamera(app, vec3(84.0f, 138.0f, 31.0f), vec3(0.0f, 10.0f, 18.0f), vec3(0.0f, 1.0f, 0.0f), 50.0f, 0.01f);
 	camera.setMovingKeys('w', 's', 'a', 'd');
-	camera.addChild(&skybox);
+	camera.addChild(Resource::instance()->getSkybox(skyboxIndex));
 
 	cityModel.loadModelFromFile("data/models/The City/The City.obj");
 	cityObj.addRenderObj(&cityModel);
@@ -80,18 +102,24 @@ void scene::initScene(oglt::IApp* app) {
 	rObj.getLocalTransform()->scale = vec3(40.0f, 40.0f, 40.0f);
 	
 	worldTree.addChild(&camera);
-	worldTree.addChild(&cityObj);
+	//worldTree.addChild(&cityObj);
 	cityObj.addChild(&rObj);
 
 	FbxModel::initialize();
 	
+	stageModel.load("data/models/Rurusyu/scenes/rurusyu.fbx");
+	stageObj.addRenderObj(&stageModel);
+	stageObj.setShaderProgram(&spSkin);
+	worldTree.addChild(&stageObj);
+
 	// Test the fbx model loading
 	// developing...
 	testModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
 	testObj.addRenderObj(&testModel);
 	testObj.setShaderProgram(&spSkin);
-	testObj.getLocalTransform()->position = vec3(0.0f, 50.0f, 0.0f);
-	cityObj.addChild(&testObj);
+	testObj.getLocalTransform()->position = vec3(0.0f, 0.0f, -10.0f);
+	testObj.getLocalTransform()->scale = vec3(0.75f, 0.75f, 0.75f);
+	stageObj.addChild(&testObj);
 
 	IRenderable::mutexViewMatrix = camera.look();
 	IRenderable::mutexProjMatrix = app->getProj();
@@ -149,6 +177,17 @@ void scene::renderScene(oglt::IApp* app) {
 		testModel.setTimer(0.0f);
 	}
 
+	if (app->oneKey('1')) {
+		camera.removeChild(Resource::instance()->getSkybox(skyboxIds[skyboxIndex]));
+		if (skyboxIndex < skyboxIds.size() - 1) {
+			skyboxIndex++;
+		}
+		else {
+			skyboxIndex = 0;
+		}
+		camera.addChild(Resource::instance()->getSkybox(skyboxIds[skyboxIndex]));
+	}
+
 	app->swapBuffers();
 }
 
@@ -157,8 +196,6 @@ void scene::releaseScene(oglt::IApp* app) {
 
 	ortho.deleteShader();
 	font.deleteShader();
-
-	skybox.deleteSkybox();
 
 	spMain.deleteProgram();
 	vtMain.deleteShader();

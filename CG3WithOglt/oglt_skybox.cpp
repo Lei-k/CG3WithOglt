@@ -127,6 +127,17 @@ void Skybox::render(int renderType)
 	glDepthMask(1);
 }
 
+bool Skybox::operator==(const Skybox& other)
+{
+	return this->sDirectory == other.sDirectory
+		&& this->sFront == other.sFront
+		&& this->sBack == other.sBack
+		&& this->sLeft == other.sLeft
+		&& this->sRight == other.sRight
+		&& this->sTop == other.sTop
+		&& this->sBottom == other.sBottom;
+}
+
 /*-----------------------------------------------
 
 Name:	DeleteSkybox

@@ -823,7 +823,9 @@ void FbxModel::render(int renderType)
 	if (!loaded)
 		return;
 
-	mutexBoneTransforms = &boneTransforms;
+	if (hasAnimation) {
+		mutexBoneTransforms = &boneTransforms;
+	}
 
 	glBindVertexArray(vao);
 	glEnable(GL_BLEND);

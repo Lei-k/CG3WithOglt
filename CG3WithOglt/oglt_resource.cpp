@@ -133,6 +133,30 @@ IMaterial * oglt::Resource::findMaterial(const string & materialName)
 	return nullptr;
 }
 
+uint oglt::Resource::addSkybox(const scene::Skybox& skybox)
+{
+	uint skyboxId = OGLT_INVALID_SKYBOX_ID;
+	FOR(i, ESZ(skyboxes)) {
+		if (skyboxes[i] == skybox) {
+			skyboxId = i;
+			break;
+		}
+	}
+	if (skyboxId == OGLT_INVALID_SKYBOX_ID) {
+		skyboxId = skyboxes.size();
+		skyboxes.push_back(skybox);
+	}
+	return skyboxId;
+}
+
+scene::Skybox * oglt::Resource::getSkybox(uint skyboxId)
+{
+	if (skyboxId == OGLT_INVALID_SKYBOX_ID || skyboxId >= skyboxes.size()) {
+		return nullptr;
+	}
+	return &skyboxes[skyboxId];
+}
+
 Resource::Resource()
 {
 	initialize();
@@ -142,5 +166,13 @@ Resource::~Resource()
 {
 	FOR(i, ESZ(materials)) {
 		delete materials[i];
+	}
+
+	FOR(i, ESZ(skyboxes)) {
+		skyboxes[i].deleteSkybox();
+	}
+
+	FOR(i, ESZ(textures)) {
+		textures[i].deleteTexture();
 	}
 }
