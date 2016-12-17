@@ -16,7 +16,7 @@ void initCallback();
 void oglt::glutBackendInit(int argc, char** argv, int ogltOptions) {
 	glutInit(&argc, argv);
 
-	uint DisplayMode = GLUT_DOUBLE | GLUT_RGBA;
+	uint DisplayMode = GLUT_DOUBLE | GLUT_RGBA | GLUT_MULTISAMPLE;
 
 	if (OGLT_DEPTH & ogltOptions) {
 		DisplayMode |= GLUT_DEPTH;
@@ -53,6 +53,8 @@ void oglt::glutBackendRun(ICallback* pCallback) {
 
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
+
+	glEnable(GL_MULTISAMPLE);
 
 	if (OGLT_DEPTH & sOgltOptions) {
 		glEnable(GL_DEPTH_TEST);
