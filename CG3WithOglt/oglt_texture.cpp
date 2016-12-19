@@ -371,8 +371,8 @@ bool Texture::loadTexture(string front, string back, string right, string left, 
 	std::vector<std::string> faces;
 	faces.push_back(right);
 	faces.push_back(left);
-	faces.push_back(down);
 	faces.push_back(up);
+	faces.push_back(down);
 	faces.push_back(back);
 	faces.push_back(front);
 
@@ -393,9 +393,9 @@ bool Texture::loadTexture(string front, string back, string right, string left, 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
 	textureType = CUBE_MAP;
+
+	sPath = front + back + right + left + up + down;
 
 	return true;
 }

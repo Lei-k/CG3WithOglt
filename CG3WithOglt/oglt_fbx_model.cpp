@@ -843,6 +843,13 @@ void FbxModel::render(int renderType)
 
 	FOR(i, ESZ(meshs)) {
 		if (meshs[i].mtlMapMode == ALL_SAME) {
+			IMaterial* material = Resource::instance()->getMaterial(meshs[i].materialId);
+			if (material != NULL) {
+				if (material->getShaderProgram() == NULL) {
+					material->setShaderProgram(shaderProgram);
+				}
+				material->useMaterial();
+			}
 			glDrawArrays(GL_TRIANGLES, meshs[i].startIndex, meshs[i].size);
 		}
 		else if (meshs[i].mtlMapMode == BY_POLYGON) {

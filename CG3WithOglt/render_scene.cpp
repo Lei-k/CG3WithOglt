@@ -24,15 +24,39 @@ SceneObject worldTree, cityObj, rObj, testObj, stageObj;
 AssimpModel cityModel, rModel;
 FbxModel testModel, stageModel;
 
-Shader ortho, font, vtMain, fgMain, dirLight, vtSkin, fgSkin;
-ShaderProgram spFont, spMain, spSkin;
+Shader ortho, font, vtMain, fgMain, dirLight, vtSkin, fgSkin, vtReflect, fgReflect;
+ShaderProgram spFont, spMain, spSkin, spReflect;
 
 vec3 sunDir = vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0);
 
 vector<oglt::uint> skyboxIds;
 oglt::uint skyboxIndex;
 
+vector<oglt::uint> cubeMapTextureIds;
+
 int cameraUpdateMode = OGLT_UPDATEA_CAMERA_WALK | OGLT_UPDATE_CAMERA_ROTATE;
+
+void bindModelCubeMapId(FbxModel& fbxModel, oglt::uint cubeMapTextureId) {
+	vector<Mesh>* meshs = fbxModel.getMeshs();
+	if (meshs != NULL) {
+		for (int i = 0; i < meshs->size(); i++) {
+			if (meshs->at(i).mtlMapMode == ALL_SAME) {
+				IMaterial* material = Resource::instance()->getMaterial(meshs->at(i).materialId);
+				if (material != NULL) {
+					material->linkTexture(MaterialParam::CUBE_MAP, cubeMapTextureId);
+				}
+			}
+			else if (meshs->at(i).mtlMapMode == BY_POLYGON) {
+				FOR(j, ESZ(meshs->at(i).polygons)) {
+					IMaterial* material = Resource::instance()->getMaterial(meshs->at(i).polygons[j].materialId);
+					if (material != NULL) {
+						material->linkTexture(MaterialParam::CUBE_MAP, cubeMapTextureId);
+					}
+				}
+			}
+		}
+	}
+}
 
 void scene::initScene(oglt::IApp* app) {
 	glClearColor(0.1f, 0.3f, 0.7f, 1.0f);
@@ -44,6 +68,8 @@ void scene::initScene(oglt::IApp* app) {
 	dirLight.loadShader("data/shaders/dirLight.frag", GL_FRAGMENT_SHADER);
 	vtSkin.loadShader("data/shaders/skinning_shader.vert", GL_VERTEX_SHADER);
 	fgSkin.loadShader("data/shaders/skinning_shader.frag", GL_FRAGMENT_SHADER);
+	vtReflect.loadShader("data/shaders/reflect.vert", GL_VERTEX_SHADER);
+	fgReflect.loadShader("data/shaders/reflect.frag", GL_FRAGMENT_SHADER);
 
 	spFont.createProgram();
 	spFont.addShaderToProgram(&ortho);
@@ -61,6 +87,12 @@ void scene::initScene(oglt::IApp* app) {
 	spSkin.addShaderToProgram(&dirLight);
 	spSkin.addShaderToProgram(&fgSkin);
 	spSkin.linkProgram();
+
+	spReflect.createProgram();
+	spReflect.addShaderToProgram(&vtReflect);
+	spReflect.addShaderToProgram(&dirLight);
+	spReflect.addShaderToProgram(&fgReflect);
+	spReflect.linkProgram();
 
 	ftFont.loadFont("data/fonts/SugarpunchDEMO.otf", 32);
 	ftFont.setShaderProgram(&spFont);
@@ -83,6 +115,12 @@ void scene::initScene(oglt::IApp* app) {
 		skybox.getLocalTransform()->scale = vec3(10.0f, 10.0f, 10.0f);
 		uint skyboxId = Resource::instance()->addSkybox(skybox);
 		skyboxIds.push_back(skyboxId);
+
+		Texture cubeMapTexture;
+		cubeMapTexture.loadTexture(skyboxPaths[i * 7] + skyboxPaths[i * 7 + 1], skyboxPaths[i * 7] + skyboxPaths[i * 7 + 2],
+			skyboxPaths[i * 7] + skyboxPaths[i * 7 + 4], skyboxPaths[i * 7] + skyboxPaths[i * 7 + 3], skyboxPaths[i * 7] + skyboxPaths[i * 7 + 5], skyboxPaths[i * 7] + skyboxPaths[i * 7 + 6]);
+		uint cubeMapId = Resource::instance()->addTexture(cubeMapTexture);
+		cubeMapTextureIds.push_back(cubeMapId);
 	}
 
 	skyboxIndex = skyboxIds.size() - 1;
@@ -109,23 +147,26 @@ void scene::initScene(oglt::IApp* app) {
 	
 	stageModel.load("data/models/Rurusyu/scenes/rurusyu.fbx");
 	stageObj.addRenderObj(&stageModel);
-	stageObj.setShaderProgram(&spSkin);
+	stageObj.setShaderProgram(&spReflect);
 	worldTree.addChild(&stageObj);
 
 	// Test the fbx model loading
 	// developing...
-	testModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
+	/*testModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
 	testObj.addRenderObj(&testModel);
 	testObj.setShaderProgram(&spSkin);
 	testObj.getLocalTransform()->position = vec3(0.0f, 0.0f, -10.0f);
 	testObj.getLocalTransform()->scale = vec3(0.75f, 0.75f, 0.75f);
-	stageObj.addChild(&testObj);
+	worldTree.addChild(&testObj);*/
 
 	IRenderable::mutexViewMatrix = camera.look();
 	IRenderable::mutexProjMatrix = app->getProj();
 	IRenderable::mutexOrthoMatrix = app->getOrth();
 	IRenderable::mutexSunLightDir = &sunDir;
 	IRenderable::mutexCameraPos = &camera.getWorldTransform()->position;
+
+	// the skybox index is same as cube map texture index
+	bindModelCubeMapId(stageModel, cubeMapTextureIds[skyboxIndex]);
 
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
@@ -140,7 +181,7 @@ void oglt::scene::updateScene(IApp * app)
 
 	animTimer += app->getDeltaTime();
 	if (animTimer >= 0.04f) {
-		testModel.updateAnimation(animTimer);
+		//testModel.updateAnimation(animTimer);
 		animTimer = 0.0f;
 	}
 
@@ -198,6 +239,7 @@ void scene::renderScene(oglt::IApp* app) {
 			skyboxIndex = 0;
 		}
 		camera.addChild(Resource::instance()->getSkybox(skyboxIds[skyboxIndex]));
+		bindModelCubeMapId(stageModel, cubeMapTextureIds[skyboxIndex]);
 	}
 
 	app->swapBuffers();
@@ -205,17 +247,21 @@ void scene::renderScene(oglt::IApp* app) {
 
 void scene::releaseScene(oglt::IApp* app) {
 	spFont.deleteProgram();
+	spSkin.deleteProgram();
+	spMain.deleteProgram();
+	spReflect.deleteProgram();
 
 	ortho.deleteShader();
 	font.deleteShader();
-
-	spMain.deleteProgram();
+	
 	vtMain.deleteShader();
 	fgMain.deleteShader();
 
-	spSkin.deleteProgram();
 	vtSkin.deleteShader();
 	fgSkin.deleteShader();
+	vtReflect.deleteShader();
+	fgReflect.deleteShader();
+
 	dirLight.deleteShader();
 
 	FbxModel::destroyManager();

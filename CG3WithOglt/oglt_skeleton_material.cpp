@@ -131,6 +131,9 @@ void oglt::SkeletonMaterial::linkTexture(MaterialParam param, uint textureId)
 	case TOON:
 		toonTextureId = textureId;
 		break;
+	case CUBE_MAP:
+		cubeMapTextureId = textureId;
+		break;
 	default:
 		fprintf(stderr, "Error: Use undefined texture param\n");
 	}
@@ -145,6 +148,8 @@ uint oglt::SkeletonMaterial::getTextureId(MaterialParam param)
 		return specularTextureId;
 	case TOON:
 		return toonTextureId;
+	case CUBE_MAP:
+		return cubeMapTextureId;
 	default:
 		fprintf(stderr, "Error: Use undefined texture param\n");
 	}
@@ -164,6 +169,9 @@ void oglt::SkeletonMaterial::useMaterial()
 		shaderProgram->setUniform("sunLight.vColor", glm::vec3(1.0f, 1.0f, 1.0f));
 		shaderProgram->setUniform("sunLight.vDirection", IRenderable::mutexSunLightDir);
 		shaderProgram->setUniform("sunLight.fAmbient", 1.0f);
+		shaderProgram->setUniform("CameraPos", IRenderable::mutexCameraPos);
+		shaderProgram->setUniform("gSampler", 0);
+		shaderProgram->setUniform("envirMap", 1);
 
 		if (IRenderable::mutexBoneTransforms != NULL) {
 			vector<glm::mat4>* boneTransforms = IRenderable::mutexBoneTransforms;
@@ -191,7 +199,7 @@ void oglt::SkeletonMaterial::useMaterial()
 
 	Texture* diffuseTexture = Resource::instance()->getTexture(diffuseTextureId);
 	if (diffuseTexture != NULL) {
-		diffuseTexture->bindTexture();
+		diffuseTexture->bindTexture(0);
 	}
 
 	Texture* specularTexture = Resource::instance()->getTexture(specularTextureId);
@@ -202,6 +210,11 @@ void oglt::SkeletonMaterial::useMaterial()
 	Texture* toonTexture = Resource::instance()->getTexture(toonTextureId);
 	if (toonTexture != NULL) {
 		toonTexture->bindTexture();
+	}
+
+	Texture* cubeMapTexture = Resource::instance()->getTexture(cubeMapTextureId);
+	if (cubeMapTexture != NULL) {
+		cubeMapTexture->bindTexture(1);
 	}
 }
 

@@ -11,7 +11,7 @@ namespace oglt {
 	enum MaterialParam {
 		AMBIENT, DIFFUSE, SPECULAR, EMISSIVE,
 		TRANSPARENCY_FACTOR, SHININESS_FACTOR, REFLECTION_FACTOR,
-		TOON
+		TOON, CUBE_MAP
 	};
 
 	class IMaterial : public IShaderable {

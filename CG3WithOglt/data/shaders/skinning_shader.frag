@@ -21,9 +21,9 @@ void main()
 	
 	vec4 vTexColor = texture2D(gSampler, vTexCoord);
 
-	//vec4 vMixedColor = vTexColor*vColor;
+	//vec4 vMixedColor = vTexColor * vColor;
 	vec4 vMixedColor = vTexColor;
-  vec4 vDirLightColor = GetDirectionalLightColor(sunLight, vNormalized);
+    vec4 vDirLightColor = GetDirectionalLightColor(sunLight, vNormalized);
 
 	outputColor = vMixedColor;
 }
