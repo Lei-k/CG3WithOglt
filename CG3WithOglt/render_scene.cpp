@@ -66,7 +66,7 @@ void scene::initScene(oglt::IApp* app) {
 	ftFont.setShaderProgram(&spFont);
 
 	string skyboxPaths[SKYBOX_NUM * 7] = { "data/skyboxes/elbrus/" , "elbrus_front.jpg" , "elbrus_back.jpg" , "elbrus_right.jpg",
-		"elbrus_right.jpg" , "elbrus_top.jpg", "elbrus_top.jpg" ,
+		"elbrus_left.jpg" , "elbrus_top.jpg", "elbrus_top.jpg" ,
 		"data/skyboxes/jajlands1/", "jajlands1_ft.jpg", "jajlands1_bk.jpg", "jajlands1_lf.jpg",
 		"jajlands1_rt.jpg", "jajlands1_up.jpg", "jajlands1_dn.jpg",
 		"data/skyboxes/jf_nuke/", "nuke_ft.tga", "nuke_bk.tga", "nuke_lf.tga",
@@ -133,9 +133,8 @@ void scene::initScene(oglt::IApp* app) {
 
 float animTimer = 0.0f;
 
-void scene::renderScene(oglt::IApp* app) {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+void oglt::scene::updateScene(IApp * app)
+{
 	worldTree.calcNodeHeirarchyTransform();
 	camera.update(cameraUpdateMode);
 
@@ -144,24 +143,6 @@ void scene::renderScene(oglt::IApp* app) {
 		testModel.updateAnimation(animTimer);
 		animTimer = 0.0f;
 	}
-
-	worldTree.render(OGLT_RENDER_CHILDREN);
-
-	spFont.useProgram();
-	spFont.setUniform("matrices.projMatrix", app->getOrth());
-	spFont.setUniform("vColor", vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	glDisable(GL_DEPTH_TEST);
-
-	uint w, h;
-	app->getViewport(w, h);
-	ftFont.printFormatted(20, h - 35, 24, "FPS: %d", app->getFps());
-	ftFont.printFormatted(20, h - 65, 20, "X: %.2f", camera.getWorldTransform()->position.x);
-	ftFont.printFormatted(20, h - 88, 20, "Y: %.2f", camera.getWorldTransform()->position.y);
-	ftFont.printFormatted(20, h - 111, 20, "Z: %.2f", camera.getWorldTransform()->position.z);
-	ftFont.print("OgltApp : https://github.com/Lei-k/oglt_app", 10, 15, 20);
-	ftFont.render();
-
-	glEnable(GL_DEPTH_TEST);
 
 	// just for testing
 	if (app->oneKey('r') || app->oneKey('R')) {
@@ -176,7 +157,38 @@ void scene::renderScene(oglt::IApp* app) {
 	if (app->oneKey('t') || app->oneKey('T')) {
 		testModel.setTimer(0.0f);
 	}
+}
 
+void scene::renderScene(oglt::IApp* app) {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	worldTree.render(OGLT_RENDER_CHILDREN);
+
+	spFont.useProgram();
+	spFont.setUniform("matrices.projMatrix", app->getOrth());
+	spFont.setUniform("vColor", vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	glDisable(GL_DEPTH_TEST);
+
+	uint w, h;
+	app->getViewport(w, h);
+	ftFont.printFormatted(20, h - 35, 24, "UPS: %d", app->getUps());
+	ftFont.printFormatted(20, h - 70, 24, "FPS: %d", app->getFps());
+	ftFont.printFormatted(20, h - 100, 20, "X: %.2f", camera.getWorldTransform()->position.x);
+	ftFont.printFormatted(20, h - 123, 20, "Y: %.2f", camera.getWorldTransform()->position.y);
+	ftFont.printFormatted(20, h - 146, 20, "Z: %.2f", camera.getWorldTransform()->position.z);
+	ftFont.print("OgltApp : https://github.com/Lei-k/oglt_app", 10, 15, 20);
+	ftFont.render();
+
+	glEnable(GL_DEPTH_TEST);
+
+	// I put change skybox code in render scene
+	// because render scene and update scene are
+	// called by difference threads.
+	// if I remove some thing in world three
+	// in update scene. it may cause nullptr problem when
+	// render scene render some thing in world tree
+	// and this operation is not weighted, so it's ok to put it
+	// in render scene
 	if (app->oneKey('1')) {
 		camera.removeChild(Resource::instance()->getSkybox(skyboxIds[skyboxIndex]));
 		if (skyboxIndex < skyboxIds.size() - 1) {

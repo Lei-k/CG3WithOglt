@@ -4,6 +4,6 @@
 
 namespace oglt {
 	namespace scene {
-		void initScene(IApp* app), renderScene(IApp* app), releaseScene(IApp* app);
+		void initScene(IApp* app), updateScene(IApp* app), renderScene(IApp* app), releaseScene(IApp* app);
 	}
 }

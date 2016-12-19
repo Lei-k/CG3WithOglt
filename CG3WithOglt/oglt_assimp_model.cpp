@@ -94,7 +94,7 @@ bool AssimpModel::loadModelFromFile(char* sFilePath)
 			else
 			{
 				Texture tNew;
-				tNew.loadTexture2D(sFullPath, true);
+				tNew.loadTexture2D(sFullPath);
 				materialRemap[i] = ESZ(textures);
 				textures.push_back(tNew);
 			}

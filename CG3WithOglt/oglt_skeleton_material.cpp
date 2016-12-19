@@ -27,7 +27,7 @@ SkeletonMaterial::~SkeletonMaterial()
 
 }
 
-void SkeletonMaterial::setColor(MaterialParam param, glm::vec3& color)
+void SkeletonMaterial::setColor(MaterialParam param, const glm::vec3& color)
 {
 	switch (param) {
 	case AMBIENT:

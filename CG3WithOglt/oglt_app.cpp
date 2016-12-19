@@ -30,13 +30,29 @@ bool OgltApp::createWindow(uint width, uint height, const char* title, int ogltO
 	return glutBackendCreateWindow(width, height, title, ogltOptions);
 }
 
+void OgltApp::updateScene()
+{
+	updateTimer();
+	scene::updateScene(this);
+	if (deltaTime < 0.001) {
+		// if update time is too quickly
+		// let this thread sleep 1 millisecond
+		this_thread::sleep_for(chrono::milliseconds(1));
+	}
+}
+
+void OgltApp::releaseScene()
+{
+	scene::releaseScene(this);
+}
+
 void OgltApp::run() {
 	scene::initScene(this);
 	glutBackendRun(this);
 }
 
 void OgltApp::renderScene() {
-	updateTimer();
+	updateFrameTimer();
 	scene::renderScene(this);
 }
 
@@ -52,7 +68,7 @@ void OgltApp::keyboard(OGLT_KEY key, OGLT_KEY_STATE state){
 
 		keyStates[key] = true;
 		if (key == 'q' || key == OGLT_KEY_ESCAPE) {
-			scene::releaseScene(this);
+			glutBackendExit();
 			exit(0);
 		}
 		break;

@@ -11,15 +11,17 @@ namespace oglt {
 
 	class IApp {
 	public:
-		virtual void getViewport(uint& width, uint& height) { 
+		void getViewport(uint& width, uint& height) { 
 			width = this->viewportWidth;
 		    height = this->viewportHeight;
 		};
 
-		virtual glm::mat4* getProj() { return &proj; }
-		virtual glm::mat4* getOrth() { return &orth; }
-		virtual float getDeltaTime() { return deltaTime; }
-		virtual int getFps() { return fps; }
+		glm::mat4* getProj() { return &proj; }
+		glm::mat4* getOrth() { return &orth; }
+		float getDeltaTime() { return deltaTime; }
+		float getFrameDeltaTime() { return frameDeltaTime; }
+		int getFps() { return fps; }
+		int getUps() { return ups; }
 
 		virtual void swapBuffers(){}
 
@@ -32,33 +34,52 @@ namespace oglt {
 	protected:
 		virtual void init() {
 			deltaTime = 0;
+			frameDeltaTime = 0;
 			curFps = 0;
 			fps = 0;
+			curUps = 0;
+			ups = 0;
 			lastClock = clock();
+			lastFrameClock = clock();
+			frameClockInSecond = 0;
 			clockInSecond = 0;
 		}
 
-		virtual void updateTimer(){
+		virtual void updateFrameTimer(){
+			clock_t curClock = clock();
+			frameDeltaTime = (float)(curClock - lastFrameClock) / (float)CLOCKS_PER_SEC;
+			frameClockInSecond += (curClock - lastFrameClock);
+			if (frameClockInSecond >= CLOCKS_PER_SEC) {
+				frameClockInSecond -= CLOCKS_PER_SEC;
+				fps = curFps;
+				curFps = 0;
+			}
+			curFps++;
+			lastFrameClock = curClock;
+		}
+
+		virtual void updateTimer() {
 			clock_t curClock = clock();
 			deltaTime = (float)(curClock - lastClock) / (float)CLOCKS_PER_SEC;
 			clockInSecond += (curClock - lastClock);
 			if (clockInSecond >= CLOCKS_PER_SEC) {
 				clockInSecond -= CLOCKS_PER_SEC;
-				fps = curFps;
-				curFps = 0;
+				ups = curUps;
+				curUps = 0;
 			}
-			curFps++;
+			curUps++;
 			lastClock = curClock;
 		}
 
 		uint viewportWidth, viewportHeight;
 		glm::mat4 proj, orth;
 
-		float deltaTime;
+		float deltaTime, frameDeltaTime;
 		int fps, curFps;
+		int ups, curUps;
 
-		clock_t lastClock;
-		clock_t clockInSecond;
+		clock_t lastFrameClock, lastClock;
+		clock_t frameClockInSecond, clockInSecond;
 
 		static bool keyStates[256];
 		static bool oneKeyStats[256];

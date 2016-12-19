@@ -2,7 +2,7 @@
 
 #include <GL\glew.h>
 
-#include <glut.h>
+#include <freeglut.h>
 
 #include "std_util.h"
 
@@ -11,7 +11,11 @@ using namespace oglt;
 static ICallback* spCallback = NULL;
 static int sOgltOptions = 0;
 
+static thread* spUpdateThread = NULL;
+static bool exited = false;
+
 void initCallback();
+static void updateScene();
 
 void oglt::glutBackendInit(int argc, char** argv, int ogltOptions) {
 	glutInit(&argc, argv);
@@ -64,7 +68,23 @@ void oglt::glutBackendRun(ICallback* pCallback) {
 
 	spCallback = pCallback;
 	initCallback();
+	spUpdateThread = new thread(updateScene);
 	glutMainLoop();
+}
+
+void oglt::glutBackendExit()
+{
+	// exit glut backend now
+	// use leave main loop for render nothing
+	exited = true;
+	glutLeaveMainLoop();
+	// waiting for update thread exit
+	// and delete it
+	spUpdateThread->join();
+	delete spUpdateThread;
+	// release the resources in object
+	// of spCallback pointer
+	spCallback->releaseScene();
 }
 
 void oglt::glutBackendSetCursor(int x, int y)
@@ -154,6 +174,12 @@ static OGLT_KEY toOgltSpecialKey(int glutKey) {
 
 static void renderScene() {
 	spCallback->renderScene();
+}
+
+static void updateScene() {
+	while (!exited) {
+		spCallback->updateScene();
+	}
 }
 
 static void idle() {

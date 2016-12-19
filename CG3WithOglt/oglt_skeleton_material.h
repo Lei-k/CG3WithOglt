@@ -8,7 +8,7 @@ namespace oglt {
 		SkeletonMaterial();
 		~SkeletonMaterial();
 
-		virtual void setColor(MaterialParam param, glm::vec3& color);
+		virtual void setColor(MaterialParam param, const glm::vec3& color);
 		virtual void setFactor(MaterialParam param, float Factor);
 
 		virtual glm::vec3* getColor(MaterialParam param);

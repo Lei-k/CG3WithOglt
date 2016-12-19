@@ -184,6 +184,8 @@ bool FbxModel::loadFromScene(FbxScene * scene)
 	boneWeights.createVBO();
 
 	processNode(rootNode);
+
+	boneTransforms.resize(boneInfos.size());
 }
 
 void FbxModel::processNode(FbxNode * node)
@@ -720,16 +722,24 @@ void FbxModel::updateAnimation(float deltaTime)
 
 	FbxTime time;
 	time.SetSecondDouble(timer);
-	
-	boneTransforms.clear();
+
+	vector<mat4> localBoneTransform;
 	FOR(i, ESZ(boneInfos)) {
 		FbxNode* node = boneNodes[i];
 		FbxAMatrix localMatrix = animEvaluator->GetNodeLocalTransform(node, time);
 		FbxAMatrix globalMatrix = animEvaluator->GetNodeGlobalTransform(node, time);
 		
 		boneInfos[i].finalTransform = toGlmMatrix(globalMatrix) * boneInfos[i].boneOffset;
-		boneTransforms.push_back(boneInfos[i].finalTransform);
+		localBoneTransform.push_back(boneInfos[i].finalTransform);
 	}
+	// the bone transforms is use for
+	// render thread(main thread) and update thread
+	// if change the bone transforms value in loop
+	// it is too slow and make not synchronized data
+	// when render thread use this. so I just put change data
+	// to local bone transform in loop and copy the local bone
+	// transform to bone transforms. it work perface now.
+	boneTransforms = localBoneTransform;
 }
 
 void FbxModel::finalizeVBO()
