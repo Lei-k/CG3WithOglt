@@ -10,6 +10,7 @@
 #include "oglt_assimp_model.h"
 #include "oglt_fbx_model.h"
 #include "oglt_scene_object.h"
+#include "oglt_audio_source.h"
 
 using namespace oglt;
 using namespace oglt::scene;
@@ -35,6 +36,8 @@ oglt::uint skyboxIndex;
 vector<oglt::uint> cubeMapTextureIds;
 
 int cameraUpdateMode = OGLT_UPDATEA_CAMERA_WALK | OGLT_UPDATE_CAMERA_ROTATE;
+
+AudioSource testSource;
 
 void bindModelCubeMapId(FbxModel& fbxModel, oglt::uint cubeMapTextureId) {
 	vector<Mesh>* meshs = fbxModel.getMeshs();
@@ -152,12 +155,12 @@ void scene::initScene(oglt::IApp* app) {
 
 	// Test the fbx model loading
 	// developing...
-	/*testModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
+	testModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
 	testObj.addRenderObj(&testModel);
 	testObj.setShaderProgram(&spSkin);
 	testObj.getLocalTransform()->position = vec3(0.0f, 0.0f, -10.0f);
 	testObj.getLocalTransform()->scale = vec3(0.75f, 0.75f, 0.75f);
-	worldTree.addChild(&testObj);*/
+	worldTree.addChild(&testObj);
 
 	IRenderable::mutexViewMatrix = camera.look();
 	IRenderable::mutexProjMatrix = app->getProj();
@@ -170,25 +173,21 @@ void scene::initScene(oglt::IApp* app) {
 
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
+
+	testSource.load("data/musics/Tell Your World Dance.wav");
+	testSource.play(true);
 }
 
 float animTimer = 0.0f;
-bool hasPlayMusic = false;
-
-#include "alut_backend.h"
 
 void oglt::scene::updateScene(IApp * app)
 {
-	if (!hasPlayMusic) {
-		alutBackendPlayFile("data/musics/Tell Your World.wav");
-		hasPlayMusic = true;
-	}
 	worldTree.calcNodeHeirarchyTransform();
 	camera.update(cameraUpdateMode);
 
 	animTimer += app->getDeltaTime();
 	if (animTimer >= 0.04f) {
-		//testModel.updateAnimation(animTimer);
+		testModel.updateAnimation(animTimer);
 		animTimer = 0.0f;
 	}
 
@@ -204,6 +203,8 @@ void oglt::scene::updateScene(IApp * app)
 
 	if (app->oneKey('t') || app->oneKey('T')) {
 		testModel.setTimer(0.0f);
+		testSource.rewind();
+		testSource.play();
 	}
 }
 

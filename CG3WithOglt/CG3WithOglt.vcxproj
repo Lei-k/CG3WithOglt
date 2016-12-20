@@ -119,6 +119,7 @@
   <ItemGroup>
     <ClInclude Include="alut_backend.h" />
     <ClInclude Include="glut_backend.h" />
+    <ClInclude Include="oglt_abo.h" />
     <ClInclude Include="oglt_app.h" />
     <ClInclude Include="oglt_assimp_model.h" />
     <ClInclude Include="oglt_audio_source.h" />
@@ -149,6 +150,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="oglt_app.cpp" />
     <ClCompile Include="oglt_assimp_model.cpp" />
+    <ClCompile Include="oglt_audio_source.cpp" />
     <ClCompile Include="oglt_camera.cpp" />
     <ClCompile Include="oglt_fbx_model.cpp" />
     <ClCompile Include="oglt_freetypefont.cpp" />
