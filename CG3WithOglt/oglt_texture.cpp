@@ -308,7 +308,6 @@ bool Texture::createCubeMapFromData(string FilePath, int i)
 {
 	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
 	FIBITMAP* dib(0);
-	cout << "Load fron " << FilePath << endl;
 	fif = FreeImage_GetFileType(FilePath.c_str(), 0);
 
 	if (fif == FIF_UNKNOWN) // If still unknown, try to guess the file format from the file extension
@@ -333,16 +332,13 @@ bool Texture::createCubeMapFromData(string FilePath, int i)
 	H = FreeImage_GetHeight(dib);
 	if (FreeImage_GetBPP(dib) == 32)
 	{
-		//cout << "GL_BGRA\n";
 		format = GL_BGRA;
 	}
 	if (FreeImage_GetBPP(dib) == 24)
 	{
-		//cout << "GL_BGR\n";
 		format = GL_BGR;
 	}if (FreeImage_GetBPP(dib) == 8)
 	{
-		//cout << "GL_LUM\n";
 		format = GL_LUMINANCE;
 	}
 	if (format == GL_RGBA || format == GL_BGRA)
@@ -361,7 +357,6 @@ bool Texture::createCubeMapFromData(string FilePath, int i)
 			, 0, format, W, H, 0, format, GL_UNSIGNED_BYTE, bDataPointer);
 	}
 
-	//cout << "cubemap"<<i<<endl;
 	FreeImage_Unload(dib);
 
 	return true;
@@ -380,7 +375,6 @@ bool Texture::loadTexture(string front, string back, string right, string left, 
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, this->textureId);
 
-	cout << "load Cube Texture\n";
 	for (int i = 0; i < faces.size(); i++)
 	{
 		createCubeMapFromData(faces[i], i);
