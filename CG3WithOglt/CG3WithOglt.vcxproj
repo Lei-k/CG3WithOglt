@@ -69,8 +69,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>..\includes;..\includes\assimpinclude;..\includes\glm;..\includes\freetypeinclude;..\includes\glutinclude;..\includes\glewinclude;..\includes\fbxinclude;$(IncludePath)</IncludePath>
-    <LibraryPath>..\libs;..\libs\assimplib\x86;..\libs\freetypelib;..\libs\glewlib;..\libs\glutlib;..\libs\fbxlib\vs2015\x86\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\includes;..\includes\assimpinclude;..\includes\glm;..\includes\freetypeinclude;..\includes\glutinclude;..\includes\glewinclude;..\includes\fbxinclude;..\includes\openalinclude;$(IncludePath)</IncludePath>
+    <LibraryPath>..\libs;..\libs\assimplib\x86;..\libs\freetypelib;..\libs\glewlib;..\libs\glutlib;..\libs\fbxlib\vs2015\x86\debug;..\libs\openallib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -80,7 +80,7 @@
       <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>glew32.lib;libfbxsdk-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32.lib;libfbxsdk-md.lib;OpenAL32.lib;alut.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -117,9 +117,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="alut_backend.h" />
     <ClInclude Include="glut_backend.h" />
     <ClInclude Include="oglt_app.h" />
     <ClInclude Include="oglt_assimp_model.h" />
+    <ClInclude Include="oglt_audio_source.h" />
     <ClInclude Include="oglt_callback.h" />
     <ClInclude Include="oglt_camera.h" />
     <ClInclude Include="oglt_fbx_model.h" />
@@ -142,6 +144,7 @@
     <ClInclude Include="std_util.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="alut_backend.cpp" />
     <ClCompile Include="glut_backend.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="oglt_app.cpp" />

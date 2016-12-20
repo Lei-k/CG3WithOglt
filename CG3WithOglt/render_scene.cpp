@@ -173,9 +173,16 @@ void scene::initScene(oglt::IApp* app) {
 }
 
 float animTimer = 0.0f;
+bool hasPlayMusic = false;
+
+#include "alut_backend.h"
 
 void oglt::scene::updateScene(IApp * app)
 {
+	if (!hasPlayMusic) {
+		alutBackendPlayFile("data/musics/Tell Your World.wav");
+		hasPlayMusic = true;
+	}
 	worldTree.calcNodeHeirarchyTransform();
 	camera.update(cameraUpdateMode);
 

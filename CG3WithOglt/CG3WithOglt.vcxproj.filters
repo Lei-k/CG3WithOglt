@@ -84,6 +84,12 @@
     <ClInclude Include="oglt_ishaderable.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
+    <ClInclude Include="alut_backend.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_audio_source.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="oglt_assimp_model.cpp">
@@ -141,6 +147,9 @@
       <Filter>原始程式檔</Filter>
     </ClCompile>
     <ClCompile Include="oglt_skeleton_material.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="alut_backend.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
   </ItemGroup>

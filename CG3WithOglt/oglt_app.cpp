@@ -1,6 +1,7 @@
 #include "oglt_app.h"
 
 #include "glut_backend.h"
+#include "alut_backend.h"
 
 #include "render_scene.h"
 
@@ -24,6 +25,7 @@ OgltApp::~OgltApp() {
 void OgltApp::init(int argc, char** argv, int ogltOptions) {
 	IApp::init();
 	glutBackendInit(argc, argv, ogltOptions);
+	alutBackendInit(argc, argv);
 }
 
 bool OgltApp::createWindow(uint width, uint height, const char* title, int ogltOptions) {
@@ -69,6 +71,7 @@ void OgltApp::keyboard(OGLT_KEY key, OGLT_KEY_STATE state){
 		keyStates[key] = true;
 		if (key == 'q' || key == OGLT_KEY_ESCAPE) {
 			glutBackendExit();
+			alutBackendExit();
 			exit(0);
 		}
 		break;
