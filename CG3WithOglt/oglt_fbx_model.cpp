@@ -183,6 +183,10 @@ bool FbxModel::loadFromScene(FbxScene * scene)
 	boneIndices.createVBO();
 	boneWeights.createVBO();
 
+	hasAnimation = scene->GetSrcObjectCount<FbxAnimStack>() == 0 ? false : true;
+
+	cout << "Processing file " + sPath << endl;
+	cout << "Please wait!" << endl;
 	processNode(rootNode);
 
 	boneTransforms.resize(boneInfos.size());
@@ -262,8 +266,8 @@ void FbxModel::processMesh(FbxNode * node)
 		meshEntry.triangles.push_back(triangle);
 	}
 
-	connectSkeletonToMesh(mesh, ctrlPointBones);
 	if (hasAnimation) {
+		connectSkeletonToMesh(mesh, ctrlPointBones);
 		mapVertexBoneFromCtrlPoint(ctrlPointBones, ctrlPointIndices);
 	}
 
@@ -615,6 +619,7 @@ void FbxModel::loadTexture(FbxTexture * texture, MaterialParam param, IMaterial 
 {
 	if (texture) {
 		FbxFileTexture* fileTexture = FbxCast<FbxFileTexture>(texture);
+		if (fileTexture == NULL) return;
 		uint textureId = Resource::instance()->addTexture(fileTexture->GetFileName());
 		outMaterial->linkTexture(param, textureId);
 	}
@@ -647,8 +652,6 @@ void FbxModel::connectSkinToMesh(FbxSkin* skin, vector<VertexBoneData>& ctrlPoin
 	FbxCluster* cluster;
 	FbxNode* node;
 	FbxAMatrix transformMatrix, linkMatrix;
-
-	hasAnimation = true;
 	
 	FOR(i, skin->GetClusterCount()) {
 		cluster = skin->GetCluster(i);
@@ -711,7 +714,7 @@ void FbxModel::updateAnimation(float deltaTime)
 		return;
 
 	timer += deltaTime;
-
+	
 	FbxAnimStack* animStack = scene->GetSrcObject<FbxAnimStack>(0);
 	if (animStack == NULL) return;
 	FbxAnimLayer* animLayer = animStack->GetSrcObject<FbxAnimLayer>();

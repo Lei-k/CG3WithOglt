@@ -118,12 +118,14 @@ void Skybox::render(int renderType)
 	}
 
 	glDepthMask(0);
+	glDisable(GL_DEPTH);
 	glBindVertexArray(vao);
 	FOR(i, 6)
 	{
 		textures[i].bindTexture();
 		glDrawArrays(GL_TRIANGLE_STRIP, i * 4, 4);
 	}
+	glEnable(GL_DEPTH);
 	glDepthMask(1);
 }
 

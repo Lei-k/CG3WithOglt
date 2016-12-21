@@ -25,10 +25,10 @@ void main()
 	vec3 ViewVector=normalize (vWorldPos-CameraPos);
 	vec3 unitNormal=normalize(vNormal);
 
-	vec3 Reflect_Vector= reflect(ViewVector,unitNormal);
-	vec4 Reflect_Color=texture(envirMap, Reflect_Vector);
-	//vec3 Refract_Vector= refract(ViewVector,WorldNormal,1.0/1.33);
-	//vec4 Refract_Color=texture(envirMap,Refract_Vector);
+	//vec3 Reflect_Vector= reflect(ViewVector,unitNormal);
+	//vec4 Reflect_Color=texture(envirMap, Reflect_Vector);
+	vec3 Refract_Vector= refract(ViewVector,WorldNormal,1.0/1.33);
+	vec4 Refract_Color=texture(envirMap,Refract_Vector);
 	//####Region akira
 
 
@@ -38,6 +38,6 @@ void main()
 
 	vec4 vMixedColor = vTexColor;
   	vec4 vDirLightColor = GetDirectionalLightColor(sunLight, vNormalized);
-	outputColor = mix(vMixedColor,Reflect_Color, 1);//mix color by 1:1 You can change 
+	outputColor = mix(vMixedColor,Refract_Color, 0.2);//mix color by 1:1 You can change 
 													//transparency by change the float value 
 }

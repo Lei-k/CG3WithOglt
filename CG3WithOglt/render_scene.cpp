@@ -22,8 +22,7 @@ using namespace glm;
 FreeTypeFont ftFont;
 FlyingCamera camera;
 SceneObject worldTree, cityObj, rObj, testObj, stageObj;
-AssimpModel cityModel, rModel;
-FbxModel testModel, stageModel;
+FbxModel testModel, stageModel, cityModel, rModel;
 
 Shader ortho, font, vtMain, fgMain, dirLight, vtSkin, fgSkin, vtReflect, fgReflect;
 ShaderProgram spFont, spMain, spSkin, spReflect;
@@ -128,15 +127,18 @@ void scene::initScene(oglt::IApp* app) {
 
 	skyboxIndex = skyboxIds.size() - 1;
 
-	camera = FlyingCamera(app, vec3(84.0f, 138.0f, 31.0f), vec3(0.0f, 10.0f, 18.0f), vec3(0.0f, 1.0f, 0.0f), 50.0f, 0.01f);
+	camera = FlyingCamera(app, vec3(15.0f, 158.0f, 469.0f), vec3(0.0f, 170.0f, 500.0f), vec3(0.0f, 1.0f, 0.0f), 200.0f, 0.01f);
 	camera.setMovingKeys('w', 's', 'a', 'd');
 	camera.addChild(Resource::instance()->getSkybox(skyboxIndex));
 
-	cityModel.loadModelFromFile("data/models/The City/The City.obj");
+	FbxModel::initialize();
+
+	cityModel.load("data/models/The City/The City.obj");
 	cityObj.addRenderObj(&cityModel);
 	cityObj.setShaderProgram(&spMain);
+	cityObj.getLocalTransform()->scale = vec3(10.0f, 10.0f, 10.0f);
 
-	rModel.loadModelFromFile("data/models/R/R.obj");
+	rModel.load("data/models/R/R.obj");
 	rObj.addRenderObj(&rModel);
 	rObj.setShaderProgram(&spMain);
 	rObj.getLocalTransform()->position = vec3(292.0f, 130.0f, -180.0f);
@@ -144,9 +146,7 @@ void scene::initScene(oglt::IApp* app) {
 	
 	worldTree.addChild(&camera);
 	//worldTree.addChild(&cityObj);
-	cityObj.addChild(&rObj);
-
-	FbxModel::initialize();
+	//worldTree.addChild(&rObj);
 	
 	stageModel.load("data/models/Rurusyu/scenes/rurusyu.fbx");
 	stageObj.addRenderObj(&stageModel);
@@ -175,7 +175,6 @@ void scene::initScene(oglt::IApp* app) {
 	glClearDepth(1.0);
 
 	testSource.load("data/musics/Tell Your World Dance.wav");
-	testSource.play(true);
 }
 
 float animTimer = 0.0f;
@@ -202,7 +201,7 @@ void oglt::scene::updateScene(IApp * app)
 	}
 
 	if (app->oneKey('t') || app->oneKey('T')) {
-		testModel.setTimer(0.0f);
+		testModel.setTimer(-0.4f);
 		testSource.rewind();
 		testSource.play();
 	}
