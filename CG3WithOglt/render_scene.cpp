@@ -21,11 +21,11 @@ using namespace glm;
 
 FreeTypeFont ftFont;
 FlyingCamera camera;
-SceneObject worldTree, cityObj, rObj, testObj, stageObj;
-FbxModel testModel, stageModel, cityModel, rModel;
+SceneObject worldTree, testObj, stageObj;
+FbxModel testModel, stageModel;
 
-Shader ortho, font, vtMain, fgMain, dirLight, vtSkin, fgSkin, vtReflect, fgReflect;
-ShaderProgram spFont, spMain, spSkin, spReflect;
+Shader ortho, font, vtMain, fgMain, dirLight, vtSkin, fgSkin, vtReflect, fgReflect, fgHandPaint;
+ShaderProgram spFont, spMain, spSkin, spReflect, spHandSkin;
 
 vec3 sunDir = vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0);
 
@@ -72,6 +72,7 @@ void scene::initScene(oglt::IApp* app) {
 	fgSkin.loadShader("data/shaders/skinning_shader.frag", GL_FRAGMENT_SHADER);
 	vtReflect.loadShader("data/shaders/reflect.vert", GL_VERTEX_SHADER);
 	fgReflect.loadShader("data/shaders/reflect.frag", GL_FRAGMENT_SHADER);
+	fgHandPaint.loadShader("data/shaders/hand_painted_shader.frag", GL_FRAGMENT_SHADER);
 
 	spFont.createProgram();
 	spFont.addShaderToProgram(&ortho);
@@ -95,6 +96,12 @@ void scene::initScene(oglt::IApp* app) {
 	spReflect.addShaderToProgram(&dirLight);
 	spReflect.addShaderToProgram(&fgReflect);
 	spReflect.linkProgram();
+
+	spHandSkin.createProgram();
+	spHandSkin.addShaderToProgram(&vtSkin);
+	spHandSkin.addShaderToProgram(&dirLight);
+	spHandSkin.addShaderToProgram(&fgHandPaint);
+	spHandSkin.linkProgram();
 
 	ftFont.loadFont("data/fonts/SugarpunchDEMO.otf", 32);
 	ftFont.setShaderProgram(&spFont);
@@ -127,26 +134,13 @@ void scene::initScene(oglt::IApp* app) {
 
 	skyboxIndex = skyboxIds.size() - 1;
 
-	camera = FlyingCamera(app, vec3(15.0f, 158.0f, 469.0f), vec3(0.0f, 170.0f, 500.0f), vec3(0.0f, 1.0f, 0.0f), 200.0f, 0.01f);
+	camera = FlyingCamera(app, vec3(15.0f, 158.0f, 469.0f), vec3(0.0f, 170.0f, 500.0f), vec3(0.0f, 1.0f, 0.0f), 100.0f, 0.01f);
 	camera.setMovingKeys('w', 's', 'a', 'd');
 	camera.addChild(Resource::instance()->getSkybox(skyboxIndex));
 
 	FbxModel::initialize();
-
-	cityModel.load("data/models/The City/The City.obj");
-	cityObj.addRenderObj(&cityModel);
-	cityObj.setShaderProgram(&spMain);
-	cityObj.getLocalTransform()->scale = vec3(10.0f, 10.0f, 10.0f);
-
-	rModel.load("data/models/R/R.obj");
-	rObj.addRenderObj(&rModel);
-	rObj.setShaderProgram(&spMain);
-	rObj.getLocalTransform()->position = vec3(292.0f, 130.0f, -180.0f);
-	rObj.getLocalTransform()->scale = vec3(40.0f, 40.0f, 40.0f);
 	
 	worldTree.addChild(&camera);
-	//worldTree.addChild(&cityObj);
-	//worldTree.addChild(&rObj);
 	
 	stageModel.load("data/models/Rurusyu/scenes/rurusyu.fbx");
 	stageObj.addRenderObj(&stageModel);
@@ -157,7 +151,7 @@ void scene::initScene(oglt::IApp* app) {
 	// developing...
 	testModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
 	testObj.addRenderObj(&testModel);
-	testObj.setShaderProgram(&spSkin);
+	testObj.setShaderProgram(&spHandSkin);
 	testObj.getLocalTransform()->position = vec3(0.0f, 0.0f, -10.0f);
 	testObj.getLocalTransform()->scale = vec3(0.75f, 0.75f, 0.75f);
 	worldTree.addChild(&testObj);
@@ -170,6 +164,7 @@ void scene::initScene(oglt::IApp* app) {
 
 	// the skybox index is same as cube map texture index
 	bindModelCubeMapId(stageModel, cubeMapTextureIds[skyboxIndex]);
+	bindModelCubeMapId(testModel, cubeMapTextureIds[skyboxIndex]);
 
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
@@ -178,17 +173,11 @@ void scene::initScene(oglt::IApp* app) {
 }
 
 float animTimer = 0.0f;
+bool playAnimation = false;
 
 void oglt::scene::updateScene(IApp * app)
 {
 	worldTree.calcNodeHeirarchyTransform();
-	camera.update(cameraUpdateMode);
-
-	animTimer += app->getDeltaTime();
-	if (animTimer >= 0.04f) {
-		testModel.updateAnimation(animTimer);
-		animTimer = 0.0f;
-	}
 
 	// just for testing
 	if (app->oneKey('r') || app->oneKey('R')) {
@@ -205,10 +194,29 @@ void oglt::scene::updateScene(IApp * app)
 		testSource.rewind();
 		testSource.play();
 	}
+
+	if (app->oneKey('y') || app->oneKey('Y')) {
+		playAnimation = !playAnimation;
+	}
+
+	if (playAnimation) {
+		animTimer += app->getDeltaTime();
+		if (animTimer >= 0.04f) {
+			testModel.updateAnimation(animTimer);
+			animTimer = 0.0f;
+		}
+	}
 }
 
 void scene::renderScene(oglt::IApp* app) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// I put the camera update function in render scene
+	// because in the camera update function I use the app->getFrameDeltaTime
+	// function it's return delta time of per render scene.
+	// it's more smooth then delta time. the camera is sensitive so I do that in
+	// render scene. rather then in update scene.
+	camera.update(cameraUpdateMode);
 
 	worldTree.render(OGLT_RENDER_CHILDREN);
 
@@ -247,6 +255,7 @@ void scene::renderScene(oglt::IApp* app) {
 		}
 		camera.addChild(Resource::instance()->getSkybox(skyboxIds[skyboxIndex]));
 		bindModelCubeMapId(stageModel, cubeMapTextureIds[skyboxIndex]);
+		bindModelCubeMapId(testModel, cubeMapTextureIds[skyboxIndex]);
 	}
 
 	app->swapBuffers();
@@ -257,6 +266,7 @@ void scene::releaseScene(oglt::IApp* app) {
 	spSkin.deleteProgram();
 	spMain.deleteProgram();
 	spReflect.deleteProgram();
+	spHandSkin.deleteProgram();
 
 	ortho.deleteShader();
 	font.deleteShader();
@@ -268,6 +278,7 @@ void scene::releaseScene(oglt::IApp* app) {
 	fgSkin.deleteShader();
 	vtReflect.deleteShader();
 	fgReflect.deleteShader();
+	fgHandPaint.deleteShader();
 
 	dirLight.deleteShader();
 

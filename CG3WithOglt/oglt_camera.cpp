@@ -161,10 +161,10 @@ void FlyingCamera::update(int updateMode)
 	int iMove = 0;
 	glm::vec3 vMoveBy;
 	// Get vector of move
-	if (app->key(forwKey))vMoveBy += vMove * 1.0f * app->getDeltaTime();
-	if (app->key(backKey))vMoveBy -= vMove * 1.0f * app->getDeltaTime();
-	if (app->key(leftKey))vMoveBy -= vStrafe * 1.0f * app->getDeltaTime();
-	if (app->key(rightKey))vMoveBy += vStrafe * 1.0f * app->getDeltaTime();
+	if (app->key(forwKey))vMoveBy += vMove * 1.0f * app->getFrameDeltaTime();
+	if (app->key(backKey))vMoveBy -= vMove * 1.0f * app->getFrameDeltaTime();
+	if (app->key(leftKey))vMoveBy -= vStrafe * 1.0f * app->getFrameDeltaTime();
+	if (app->key(rightKey))vMoveBy += vStrafe * 1.0f * app->getFrameDeltaTime();
 	localTransform.position += vMoveBy; vView += vMoveBy;
 
 	glm::vec3 vEye;
