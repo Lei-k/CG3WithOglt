@@ -103,6 +103,12 @@ void scene::initScene(oglt::IApp* app) {
 	spHandSkin.addShaderToProgram(&fgHandPaint);
 	spHandSkin.linkProgram();
 
+	Resource::instance()->addShaderProgram(spFont, "font");
+	Resource::instance()->addShaderProgram(spMain, "main");
+	Resource::instance()->addShaderProgram(spSkin, "skin");
+	Resource::instance()->addShaderProgram(spReflect, "reflect");
+	Resource::instance()->addShaderProgram(spHandSkin, "handedSkin");
+
 	ftFont.loadFont("data/fonts/SugarpunchDEMO.otf", 32);
 	ftFont.setShaderProgram(&spFont);
 
@@ -174,6 +180,7 @@ void scene::initScene(oglt::IApp* app) {
 
 float animTimer = 0.0f;
 bool playAnimation = false;
+int switchShaderProgram = 0;
 
 void oglt::scene::updateScene(IApp * app)
 {
@@ -197,6 +204,26 @@ void oglt::scene::updateScene(IApp * app)
 
 	if (app->oneKey('y') || app->oneKey('Y')) {
 		playAnimation = !playAnimation;
+	}
+
+	if (app->oneKey('e') || app->oneKey('E')) {
+		switchShaderProgram++;
+		if (switchShaderProgram >= 2) {
+			switchShaderProgram = 0;
+		}
+		ShaderProgram* program = nullptr;
+		switch (switchShaderProgram) {
+		case 0:
+			program = Resource::instance()->findShaderProgram("skin");
+			break;
+		case 1:
+			program = Resource::instance()->findShaderProgram("handedSkin");
+			int a = 0;
+			break;
+		}
+		if (program != nullptr) {
+			testModel.setShaderProgram(program);
+		}
 	}
 
 	if (playAnimation) {

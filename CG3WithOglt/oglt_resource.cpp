@@ -34,6 +34,11 @@ void Resource::initialize()
 
 uint Resource::addShaderProgram(ShaderProgram & shaderProgram)
 {
+	return addShaderProgram(shaderProgram, "");
+}
+
+uint Resource::addShaderProgram(ShaderProgram & shaderProgram, const string& programName)
+{
 	// the shader program id store in Resource class
 	uint shaderProgramId = OGLT_INVALID_SHADER_ID;
 	FOR(i, ESZ(shaderPrograms)) {
@@ -45,6 +50,11 @@ uint Resource::addShaderProgram(ShaderProgram & shaderProgram)
 	if (shaderProgramId == OGLT_INVALID_SHADER_ID) {
 		shaderProgramId = ESZ(shaderPrograms);
 		shaderPrograms.push_back(shaderProgram);
+		string newProgramName = programName;
+		if (newProgramName.size() == 0) {
+			newProgramName = "ShaderProgram " + shaderProgramId;
+		}
+		shaderProgramMap[newProgramName] = shaderProgramId;
 	}
 
 	return shaderProgramId;
@@ -56,6 +66,15 @@ ShaderProgram * Resource::getShaderProgram(uint shaderId)
 		return nullptr;
 	}
 	return &shaderPrograms[shaderId];
+}
+
+ShaderProgram * oglt::Resource::findShaderProgram(const string & programName)
+{
+	ShaderProgram* pShaderProgram = nullptr;
+	if (shaderProgramMap.find(programName) != shaderProgramMap.end()) {
+		pShaderProgram = getShaderProgram(shaderProgramMap[programName]);
+	}
+	return pShaderProgram;
 }
 
 uint Resource::addTexture(Texture & texture)
@@ -174,5 +193,9 @@ Resource::~Resource()
 
 	FOR(i, ESZ(textures)) {
 		textures[i].deleteTexture();
+	}
+
+	FOR(i, ESZ(shaderPrograms)) {
+		shaderPrograms[i].deleteProgram();
 	}
 }

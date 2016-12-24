@@ -848,9 +848,7 @@ void FbxModel::render(int renderType)
 		if (meshs[i].mtlMapMode == ALL_SAME) {
 			IMaterial* material = Resource::instance()->getMaterial(meshs[i].materialId);
 			if (material != NULL) {
-				if (material->getShaderProgram() == NULL) {
-					material->setShaderProgram(shaderProgram);
-				}
+				material->setShaderProgram(shaderProgram);
 				material->useMaterial();
 			}
 			glDrawArrays(GL_TRIANGLES, meshs[i].startIndex, meshs[i].size);
@@ -860,9 +858,7 @@ void FbxModel::render(int renderType)
 			FOR(j, ESZ(meshs[i].polygons)) {
 				IMaterial* material = Resource::instance()->getMaterial(meshs[i].polygons[j].materialId);
 				if (material != NULL) {
-					if (material->getShaderProgram() == NULL) {
-						material->setShaderProgram(shaderProgram);
-					}
+					material->setShaderProgram(shaderProgram);
 					material->useMaterial();
 				}
 				glDrawArrays(GL_TRIANGLES, meshs[i].polygons[j].startIndex, meshs[i].polygons[j].size);

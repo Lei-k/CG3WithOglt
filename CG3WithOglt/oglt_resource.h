@@ -14,7 +14,9 @@ namespace oglt {
 
 		void initialize();
 		uint addShaderProgram(ShaderProgram& shaderProgram);
+		uint addShaderProgram(ShaderProgram& shaderProgram, const string& programName);
 		ShaderProgram* getShaderProgram(uint shaderId);
+		ShaderProgram* findShaderProgram(const string& programName);
 		uint addTexture(Texture& texture);
 		uint addTexture(const string& texturePath);
 		Texture* getTexture(uint textureId);
@@ -32,6 +34,7 @@ namespace oglt {
 		~Resource();
 
 		vector<ShaderProgram> shaderPrograms;
+		map<string, uint> shaderProgramMap;
 		vector<Texture> textures;
 		vector<IMaterial*> materials;
 		map<string, uint> materialMap;
