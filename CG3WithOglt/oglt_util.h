@@ -1,6 +1,8 @@
 #pragma once
 
 #include <GL\glew.h>
+#include <glm\glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace oglt {
 
@@ -23,6 +25,7 @@ namespace oglt {
 #define OGLT_INVALID_TEXTURE_ID 0xFFFFFFFF
 #define OGLT_INVALID_TEXTURE_INDEX 0xFFFFFFFF
 #define OGLT_INVALID_SKYBOX_ID 0xFFFFFFFF
+#define OGLT_INVALID_LIGHT_ID 0xFFFFFFFF
 
 	typedef unsigned int uint;
 
@@ -153,4 +156,12 @@ namespace oglt {
 		OGLT_ASSIMP_MODEL,
 		OGLT_NONE_MODEL = 999
 	};
+
+	namespace scene {
+		struct Transform {
+			glm::vec3 position;
+			glm::quat rotation;
+			glm::vec3 scale;
+		};
+	}
 }

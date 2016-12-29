@@ -198,15 +198,6 @@ void FlyingCamera::resetMouse()
 	app->setCursor((float)w / 2.0f, (float)h / 2.0f);
 }
 
-void FlyingCamera::render(int renderType)
-{
-	if (brother != NULL)
-		brother->render(renderType);
-
-	if (child != NULL)
-		child->render(renderType);
-}
-
 /*-----------------------------------------------
 
 Name:	Look

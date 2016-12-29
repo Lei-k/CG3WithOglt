@@ -109,3 +109,20 @@ bool SceneNode::isRootNode()
 {
 	return parent == NULL;
 }
+
+void SceneNode::render(int renderType)
+{
+	if (renderType & OGLT_RENDER_NONE)
+		return;
+
+	// the scene node has not any entity
+	// ignore render it
+
+	if (renderType & OGLT_RENDER_CHILDREN) {
+		if (brother != NULL)
+			brother->render(renderType);
+
+		if (child != NULL)
+			child->render(renderType);
+	}
+}

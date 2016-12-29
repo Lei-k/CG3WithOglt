@@ -8,12 +8,6 @@
 
 namespace oglt {
 	namespace scene {
-		struct Transform {
-			glm::vec3 position;
-			glm::quat rotation;
-			glm::vec3 scale;
-		};
-
 		class SceneNode : public IRenderable {
 		public:
 			SceneNode();
@@ -28,7 +22,8 @@ namespace oglt {
 			void removeChild(SceneNode* child);
 			bool isRootNode();
 
-			virtual void render(int renderType = OGLT_RENDER_SELF){}
+			virtual void render(int renderType = OGLT_RENDER_CHILDREN);
+
 		protected:
 			Transform localTransform;
 			Transform worldTransform;

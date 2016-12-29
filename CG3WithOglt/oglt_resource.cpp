@@ -1,6 +1,7 @@
 #include "oglt_resource.h"
 
 using namespace oglt;
+using namespace oglt::scene;
 
 Resource* Resource::instance()
 {
@@ -30,6 +31,8 @@ void Resource::initialize()
 	defMaterial->setShaderProgram(&shaderPrograms[0]);
 
 	materials.push_back(defMaterial);
+
+	uboLights.createUniformBuffer();
 }
 
 uint Resource::addShaderProgram(ShaderProgram & shaderProgram)
@@ -176,6 +179,128 @@ scene::Skybox * oglt::Resource::getSkybox(uint skyboxId)
 	return &skyboxes[skyboxId];
 }
 
+uint oglt::Resource::addDirectionalLight(const scene::DirectionalLight & directionalLight)
+{
+	return addDirectionalLight(directionalLight, "");
+}
+
+uint oglt::Resource::addDirectionalLight(const scene::DirectionalLight & directionalLight, const string & lightName)
+{
+	uint lightId = directionalLights.size();
+	directionalLights.push_back(directionalLight);
+	string newLightName = lightName;
+	if (newLightName.size() == 0) {
+		newLightName = "Directional Light " + lightId;
+	}
+	directionalLightMap[newLightName] = lightId;
+
+	return lightId;
+}
+
+uint oglt::Resource::addSpotLight(const scene::SpotLight & spotLight)
+{
+	return addSpotLight(spotLight, "");
+}
+
+uint oglt::Resource::addSpotLight(const scene::SpotLight & spotLight, const string & lightName)
+{
+	uint lightId = spotLights.size();
+	spotLights.push_back(spotLight);
+	string newLightName = lightName;
+	if (newLightName.size() == 0) {
+		newLightName = "Spot Light " + lightId;
+	}
+	spotLightMap[newLightName] = lightId;
+
+	return lightId;
+}
+
+DirectionalLight* oglt::Resource::getDirectionalLight(uint lightId)
+{
+	if (lightId == OGLT_INVALID_LIGHT_ID || lightId >= ESZ(directionalLights))
+		return NULL;
+	return &directionalLights[lightId];
+}
+
+DirectionalLight* oglt::Resource::findDirectionalLight(const string & lightName)
+{
+	if (directionalLightMap.find(lightName) != directionalLightMap.end()) {
+		return &directionalLights[directionalLightMap[lightName]];
+	}
+	return NULL;
+}
+
+SpotLight* oglt::Resource::getSpotLight(uint lightId)
+{
+	if (lightId == OGLT_INVALID_LIGHT_ID || lightId >= ESZ(spotLights))
+		return NULL;
+	return &spotLights[lightId];
+}
+
+SpotLight* oglt::Resource::findSpotLight(const string & lightName)
+{
+	if (spotLightMap.find(lightName) != spotLightMap.end()) {
+		return &spotLights[spotLightMap[lightName]];
+	}
+	return NULL;
+}
+
+float testNum = 0.91f;
+void oglt::Resource::setUpLights()
+{
+	FOR(i, ESZ(directionalLights)) {
+		uboLights.addData(&spotLights[i].getLightParameter()->position, sizeof(glm::vec4));
+		uboLights.addData(&spotLights[i].getLightParameter()->direction, sizeof(glm::vec4));
+		uboLights.addData(&spotLights[i].getLightParameter()->ambient, sizeof(glm::vec4));
+		uboLights.addData(&spotLights[i].getLightParameter()->diffuse, sizeof(glm::vec4));
+		uboLights.addData(&spotLights[i].getLightParameter()->specular, sizeof(glm::vec4));
+	}
+	int maxSize = MAX_DIRECTIONAL_LIGHTS;
+	SFOR(i, ESZ(directionalLights), maxSize - 1) {
+		uboLights.addData(NULL, sizeof(glm::vec4));
+		uboLights.addData(NULL, sizeof(glm::vec4));
+		uboLights.addData(NULL, sizeof(glm::vec4));
+		uboLights.addData(NULL, sizeof(glm::vec4));
+		uboLights.addData(NULL, sizeof(glm::vec4));
+	}
+	FOR(i, ESZ(spotLights)) {
+		uboLights.addData(&spotLights[i].getLightParameter()->position, sizeof(glm::vec3));
+		uboLights.addData(&spotLights[i].getLightParameter()->cutOff, sizeof(GLfloat));
+		uboLights.addData(&spotLights[i].getLightParameter()->direction, sizeof(glm::vec3));
+		uboLights.addData(&spotLights[i].getLightParameter()->outerCutOff, sizeof(GLfloat));
+		uboLights.addData(&spotLights[i].getLightParameter()->ambient, sizeof(glm::vec3));
+		uboLights.addData(&spotLights[i].getLightParameter()->constant, sizeof(GLfloat));
+		uboLights.addData(&spotLights[i].getLightParameter()->diffuse, sizeof(glm::vec3));
+		uboLights.addData(&spotLights[i].getLightParameter()->linear, sizeof(GLfloat));
+		uboLights.addData(&spotLights[i].getLightParameter()->specular, sizeof(glm::vec3));
+		uboLights.addData(&spotLights[i].getLightParameter()->quadratic, sizeof(GLfloat));
+	}
+	maxSize = MAX_SPOT_LIGHTS;
+	SFOR(i, ESZ(spotLights), maxSize - 1) {
+		uboLights.addData(NULL, sizeof(SpotLightParameter));
+	}
+	uboLights.uploadBufferData(1, GL_DYNAMIC_DRAW);
+	uboLights.updateBuffer();
+}
+
+void oglt::Resource::updateLights()
+{
+    FOR(i, ESZ(directionalLights)) {
+		directionalLights[i].update();
+	}
+
+	FOR(i, ESZ(spotLights)) {
+		spotLights[i].update();
+	}
+
+	uboLights.updateBuffer();
+
+	/*FOR(i, ESZ(shaderPrograms)) {
+		shaderPrograms[i].setUniform("direcationalLightNum", ESZ(directionalLights));
+		shaderPrograms[i].setUniform("spotLightNum", ESZ(spotLights));
+	}*/
+}
+
 Resource::Resource()
 {
 	initialize();
@@ -198,4 +323,6 @@ Resource::~Resource()
 	FOR(i, ESZ(shaderPrograms)) {
 		shaderPrograms[i].deleteProgram();
 	}
+
+	uboLights.deleteBuffer();
 }

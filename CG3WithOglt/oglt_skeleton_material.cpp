@@ -20,6 +20,7 @@ SkeletonMaterial::SkeletonMaterial()
 	diffuseTextureId = OGLT_INVALID_TEXTURE_INDEX;
 	specularTextureId = OGLT_INVALID_TEXTURE_INDEX;
 	toonTextureId = OGLT_INVALID_TEXTURE_INDEX;
+	furTextureId = OGLT_INVALID_TEXTURE_ID;
 }
 
 SkeletonMaterial::~SkeletonMaterial()
@@ -134,6 +135,9 @@ void oglt::SkeletonMaterial::linkTexture(MaterialParam param, uint textureId)
 	case CUBE_MAP:
 		cubeMapTextureId = textureId;
 		break;
+	case FUR_TEXTURE:
+		furTextureId = textureId;
+		break;
 	default:
 		fprintf(stderr, "Error: Use undefined texture param\n");
 	}
@@ -172,6 +176,7 @@ void oglt::SkeletonMaterial::useMaterial()
 		shaderProgram->setUniform("CameraPos", IRenderable::mutexCameraPos);
 		shaderProgram->setUniform("gSampler", 0);
 		shaderProgram->setUniform("envirMap", 1);
+		shaderProgram->setUniform("furSampler", 2);
 
 		if (IRenderable::mutexBoneTransforms != NULL) {
 			vector<glm::mat4>* boneTransforms = IRenderable::mutexBoneTransforms;
@@ -215,6 +220,11 @@ void oglt::SkeletonMaterial::useMaterial()
 	Texture* cubeMapTexture = Resource::instance()->getTexture(cubeMapTextureId);
 	if (cubeMapTexture != NULL) {
 		cubeMapTexture->bindTexture(1);
+	}
+
+	Texture* furTexture = Resource::instance()->getTexture(furTextureId);
+	if (furTexture != NULL) {
+		furTexture->bindTexture(2);
 	}
 }
 

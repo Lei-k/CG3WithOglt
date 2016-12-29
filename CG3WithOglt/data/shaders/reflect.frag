@@ -1,4 +1,4 @@
-#version 330
+#version 430
 
 smooth in vec2 vTexCoord;
 smooth in vec3 vNormal;
@@ -11,16 +11,23 @@ out vec4 outputColor;
 uniform sampler2D gSampler;
 uniform vec4 vColor;
 
-#include "dirLight.frag"
-
-uniform DirectionalLight sunLight;
+#include "Lights.frag"
 
 
+layout(std140,binding = 1) uniform LightSourceBlock
+{
+    DirectionalLight directionalLights[10];
+	Spotlight spotLights[10];
+};
+uniform int SpotNum;
 uniform samplerCube envirMap;//Cube Map #akira
 uniform vec3 CameraPos;//Camera position #akira
+uniform int enableLight;
+Material material;
 
 void main()
 {
+	
 	//###Region akira
 	vec3 ViewVector=normalize (vWorldPos-CameraPos);
 	vec3 unitNormal=normalize(vNormal);
@@ -31,13 +38,28 @@ void main()
 	vec4 Refract_Color=texture(envirMap,Refract_Vector);
 	//####Region akira
 
-
+	
+			
+	
 	vec3 vNormalized = normalize(vNormal);
 	
-	vec4 vTexColor = texture2D(gSampler, vTexCoord);
+	vec3 vTexColor = texture2D(gSampler, vTexCoord).rgb;
+	//CaculateLights
+	vec3 lightColor=vec3(0.0,0.0,0.0);
+	
+	
+	for(int i = 0 ; i < 2 ; i++){
+		//lightColor+= CaculSpotLightColor(vWorldPos,unitNormal,CameraPos,spotLights[i],vTexColor);
+		lightColor +=CaculSmoothSpotLight(vWorldPos,unitNormal,CameraPos,spotLights[i],vTexColor);
+	}
+	//vec3 lightpos=vec3(0.0,5.0,0.0);
+	//vec3 vMixedColor = BlinnShading(vTexColor,vWorldPos,lightpos,CameraPos,unitNormal);
 
-	vec4 vMixedColor = vTexColor;
-  	vec4 vDirLightColor = GetDirectionalLightColor(sunLight, vNormalized);
-	outputColor = mix(vMixedColor,Refract_Color, 0.2);//mix color by 1:1 You can change 
-													//transparency by change the float value 
+	
+	//vMixedColor+=lightColor;
+	vec4 totalColor= vec4(lightColor,1.0);
+  	//vec4 vDirLightColor = GetDirectionalLightColor(sunLight, vNormalized);
+	//outputColor = mix(totalColor,Refract_Color, 0.5);//mix color by 1:1 You can change 
+													//transparency by change the float value
+    outputColor= vec4(lightColor, 1.0);
 }

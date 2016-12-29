@@ -17,7 +17,6 @@ namespace oglt {
 
 			void setMovingKeys(int a_iForw, int a_iBack, int a_iLeft, int a_iRight);
 			void resetMouse();
-			virtual void render(int renderType);
 
 			// Constructors
 			FlyingCamera();

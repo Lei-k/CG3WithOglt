@@ -1,4 +1,9 @@
-#version 330
+#version 430
+layout (std140, binding = 0) uniform Matrices2
+{
+    mat4 projection; //64
+    mat4 view;    //64
+};
 
 uniform struct Matrices
 {
@@ -22,9 +27,9 @@ out vec3 WorldNormal;//##To caculate Reflect akira
 
 void main()
 {
-  mat4 mMV = matrices.viewMatrix*matrices.modelMatrix;  
-  mat4 mMVP = matrices.projMatrix*matrices.viewMatrix*matrices.modelMatrix;
-  
+  mat4 mMV = view*matrices.modelMatrix;  
+  mat4 mMVP = projection*view*matrices.modelMatrix;
+   
   WorldNormal=(matrices.normalMatrix *vec4(inNormal,1.0)).xyz;//###akira
 
   vTexCoord = inCoord;

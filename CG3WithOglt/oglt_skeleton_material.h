@@ -38,5 +38,6 @@ namespace oglt {
 		uint specularTextureId;
 		uint toonTextureId;
 		uint cubeMapTextureId;
+		uint furTextureId;
 	};
 }
