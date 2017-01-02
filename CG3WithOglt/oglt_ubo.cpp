@@ -16,16 +16,6 @@ void UniformBufferObject::createUniformBuffer()
 	glGenBuffers(1, &bufferId);
 }
 
-void printMat4(glm::mat4* mat) {
-	FOR(i, 4) {
-		FOR(j, 4) {
-			cout << (*mat)[i][j] << "\t";
-		}
-		cout << endl;
-	}
-	cout << endl;
-}
-
 void UniformBufferObject::updateBuffer()
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, bufferId);
@@ -39,8 +29,6 @@ void UniformBufferObject::updateBuffer()
 	}
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
-
-
 
 void UniformBufferObject::addData(void* data, GLuint size) {
 	datas.push_back(data);

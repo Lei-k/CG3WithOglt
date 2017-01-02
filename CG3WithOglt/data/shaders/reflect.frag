@@ -13,13 +13,18 @@ uniform vec4 vColor;
 
 #include "Lights.frag"
 
+const int maxDirectionalLights = 10;
+const int maxSpotLights = 10;
 
 layout(std140,binding = 1) uniform LightSourceBlock
 {
-    DirectionalLight directionalLights[10];
-	Spotlight spotLights[10];
+    DirectionalLight directionalLights[maxDirectionalLights];
+	Spotlight spotLights[maxSpotLights];
+
+	int directionalLightNum;
+	int spotLightNum;
 };
-uniform int SpotNum;
+
 uniform samplerCube envirMap;//Cube Map #akira
 uniform vec3 CameraPos;//Camera position #akira
 uniform int enableLight;
@@ -48,7 +53,7 @@ void main()
 	vec3 lightColor=vec3(0.0,0.0,0.0);
 	
 	
-	for(int i = 0 ; i < 2 ; i++){
+	for(int i = 0 ; i < spotLightNum ; i++){
 		//lightColor+= CaculSpotLightColor(vWorldPos,unitNormal,CameraPos,spotLights[i],vTexColor);
 		lightColor +=CaculSmoothSpotLight(vWorldPos,unitNormal,CameraPos,spotLights[i],vTexColor);
 	}

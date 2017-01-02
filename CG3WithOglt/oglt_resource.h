@@ -67,5 +67,8 @@ namespace oglt {
 		map<string, uint> directionalLightMap;
 		vector<scene::SpotLight> spotLights;
 		map<string, uint> spotLightMap;
+
+		uint directionalLightCount;
+		uint spotLightCount;
 	};
 }

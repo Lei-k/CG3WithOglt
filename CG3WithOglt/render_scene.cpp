@@ -26,7 +26,7 @@ SceneObject worldTree, mikuObj, stageObj;
 FbxModel mikuModel, stageModel;
 
 Shader ortho, font, vtMain, fgMain, dirLight, vtSkin, fgSkin, vtReflect, fgReflect, fgHandPaint,
-vtFurSkin, gmFurSkin, fgFurSkin, fgLights;
+vtFurSkin, gmFurSkin, fgFurSkin, fgLights, fgLighting;
 
 vec3 sunDir = vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0);
 
@@ -38,7 +38,6 @@ vector<oglt::uint> cubeMapTextureIds;
 int cameraUpdateMode = OGLT_UPDATEA_CAMERA_WALK | OGLT_UPDATE_CAMERA_ROTATE;
 
 AudioSource testSource;
-
 
 UniformBufferObject uboMatrix;
 
@@ -83,8 +82,9 @@ void initShaders() {
 	gmFurSkin.loadShader("data/shaders/fur_skinning_shader.geom", GL_GEOMETRY_SHADER);
 	fgFurSkin.loadShader("data/shaders/fur_skinning_shader.frag", GL_FRAGMENT_SHADER);
 	fgLights.loadShader("data/shaders/Lights.frag", GL_FRAGMENT_SHADER);
+	fgLighting.loadShader("data/shaders/lighting.frag", GL_FRAGMENT_SHADER);
 
-	ShaderProgram spFont, spMain, spSkin, spReflect, spHandSkin, spFurSkin;
+	ShaderProgram spFont, spMain, spSkin, spReflect, spHandSkin, spFurSkin, spLightingSkin;
 	spFont.createProgram();
 	spFont.addShaderToProgram(&ortho);
 	spFont.addShaderToProgram(&font);
@@ -120,17 +120,26 @@ void initShaders() {
 	spFurSkin.addShaderToProgram(&fgFurSkin);
 	spFurSkin.linkProgram();
 
+	spLightingSkin.createProgram();
+	spLightingSkin.addShaderToProgram(&vtSkin);
+	spLightingSkin.addShaderToProgram(&fgLights);
+	spLightingSkin.addShaderToProgram(&fgLighting);
+	spLightingSkin.linkProgram();
+
 	Resource::instance()->addShaderProgram(spFont, "font");
 	Resource::instance()->addShaderProgram(spMain, "main");
 	Resource::instance()->addShaderProgram(spSkin, "skin");
 	Resource::instance()->addShaderProgram(spReflect, "reflect");
 	Resource::instance()->addShaderProgram(spHandSkin, "handedSkin");
 	Resource::instance()->addShaderProgram(spFurSkin, "furSkin");
+	Resource::instance()->addShaderProgram(spLightingSkin, "lightingSkin");
 }
+
+SceneObject spotLightBall;
 
 void initLights() {
 	SpotLight spotLight;
-	spotLight.setParam(LightParam::AMBIENT, vec3(0.1f, 0.1f, 0.1f));
+	spotLight.setParam(LightParam::AMBIENT, vec3(0.0f, 0.0f, 0.0f));
 	spotLight.setParam(LightParam::DIFFUSE, vec3(0.0f, 0.0f, 0.8f));
 	spotLight.setParam(LightParam::SPECULAR, vec3(1.0f, 1.0f, 1.0f));
 	spotLight.setParam(LightParam::CONSTANT, 1.0f);
@@ -138,15 +147,33 @@ void initLights() {
 	spotLight.setParam(LightParam::QUADRATIC, 0.032f);
 	spotLight.setParam(LightParam::CUTOFF, 0.61f);
 	spotLight.setParam(LightParam::OUTER_CUTOFF, 0.5f);
-	spotLight.getLocalTransform()->position = vec3(0.0f, 100.0f, 0.0f);
+	spotLight.getLocalTransform()->position = vec3(0.0f, 0.0f, 0.0f);
 	
 	Resource::instance()->addSpotLight(spotLight, "spotLight1");
 	spotLight.setParam(LightParam::DIFFUSE, vec3(0.8f, 0.0f, 0.0f));
-	spotLight.getLocalTransform()->position = vec3(100.0f, 100.0f, 0.0f);
+	spotLight.getLocalTransform()->rotation = quat(vec3(0.0f, 0.0f, 90.0f));
 	Resource::instance()->addSpotLight(spotLight, "spotLight2");
+	spotLight.setParam(LightParam::DIFFUSE, vec3(0.0f, 0.8f, 0.0f));
+	spotLight.getLocalTransform()->rotation = quat(vec3(0.0f, 0.0f, -90.0f));
+	Resource::instance()->addSpotLight(spotLight, "spotLight3");
+	spotLight.setParam(LightParam::DIFFUSE, vec3(0.8f, 0.8f, 0.0f));
+	spotLight.getLocalTransform()->rotation = quat(vec3(0.0f, 0.0f, 180.0f));
+	Resource::instance()->addSpotLight(spotLight, "spotLight4");
+	spotLight.setParam(LightParam::DIFFUSE, vec3(0.0f, 0.8f, 0.8f));
+	spotLight.getLocalTransform()->rotation = quat(vec3(90.0f, 0.0f, 0.0f));
+	Resource::instance()->addSpotLight(spotLight, "spotLight5");
+	spotLight.setParam(LightParam::DIFFUSE, vec3(0.8f, 0.0f, 0.8f));
+	spotLight.getLocalTransform()->rotation = quat(vec3(-90.0f, 0.0f, 0.0f));
+	Resource::instance()->addSpotLight(spotLight, "spotLight6");
 	Resource::instance()->setUpLights();
-	worldTree.addChild(Resource::instance()->findSpotLight("spotLight1"));
-	worldTree.addChild(Resource::instance()->findSpotLight("spotLight2"));
+	spotLightBall.getLocalTransform()->position = vec3(0.0f, 70.0f, 0.0f);
+	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight1"));
+	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight2"));
+	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight3"));
+	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight4"));
+	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight5"));
+	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight6"));
+	worldTree.addChild(&spotLightBall);
 }
 
 void scene::initScene(oglt::IApp* app) {
@@ -223,7 +250,7 @@ void scene::initScene(oglt::IApp* app) {
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
 
-	testSource.load("data/musics/Tell Your World Dance.wav");
+	testSource.load("data/musics/Tell Your World.wav");
 
 	initLights();
 	uboMatrix.createUniformBuffer();
@@ -241,7 +268,10 @@ float animTimer = 0.0f;
 bool playAnimation = false;
 int switchShaderProgram = 0;
 float rotateZ = 0.0f;
-float ambientFactor = 0.1f;
+float rotateX = 0.0f;
+float rotateY = 0.0f;
+float positionY = 70.0f;
+float outerFactor = 0.5f;
 
 void oglt::scene::updateScene(IApp * app)
 {
@@ -269,7 +299,7 @@ void oglt::scene::updateScene(IApp * app)
 
 	if (app->oneKey('e') || app->oneKey('E')) {
 		switchShaderProgram++;
-		if (switchShaderProgram >= 3) {
+		if (switchShaderProgram >= 4) {
 			switchShaderProgram = 0;
 		}
 		ShaderProgram* program = nullptr;
@@ -282,6 +312,9 @@ void oglt::scene::updateScene(IApp * app)
 			break;
 		case 2:
 			program = Resource::instance()->findShaderProgram("furSkin");
+			break;
+		case 3:
+			program = Resource::instance()->findShaderProgram("lightingSkin");
 			break;
 		}
 		if (program != nullptr) {
@@ -296,20 +329,48 @@ void oglt::scene::updateScene(IApp * app)
 			animTimer = 0.0f;
 		}
 	}
+
+	if (app->key('4')) {
+		rotateZ += 10.0f * app->getDeltaTime();
+	}
+
+	if (app->key('5')) {
+		rotateX += 10.0f * app->getDeltaTime();
+	}
+
+	if (app->key('6')) {
+		rotateY += 10.0f * app->getDeltaTime();
+	}
+
+	if (app->key('u')) {
+		positionY += 10.0f * app->getDeltaTime();
+	}
+
+	if (app->key('j')) {
+		positionY -= 10.0f * app->getDeltaTime();
+	}
+
+	spotLightBall.getLocalTransform()->rotation = quat(vec3(rotateX, rotateY, rotateZ));
+	spotLightBall.getLocalTransform()->position = vec3(0.0f, positionY, 0.0f);
+
+	if (app->key('3')) {
+		SpotLight* spotLight1 = Resource::instance()->findSpotLight("spotLight1");
+		SpotLight* spotLight2 = Resource::instance()->findSpotLight("spotLight2");
+		if (spotLight1 != NULL && spotLight2 != NULL) {
+			outerFactor -= 0.2f * app->getDeltaTime();
+			if (outerFactor < 0.0f) {
+				outerFactor = 0.5f;
+			}
+			spotLight1->setParam(LightParam::OUTER_CUTOFF, outerFactor);
+			spotLight2->setParam(LightParam::OUTER_CUTOFF, outerFactor);
+		}
+	}
 }
 
 void scene::renderScene(oglt::IApp* app) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	uboMatrix.updateBuffer();
-
-	SpotLight* spotLight = Resource::instance()->findSpotLight("spotLight1");
-	if (spotLight != NULL) {
-		if (app->key('i') || app->key('I')) {
-			rotateZ += 10.0f * app->getFrameDeltaTime();
-			spotLight->getLocalTransform()->rotation = quat(vec3(0.0f, 0.0f, rotateZ));
-		}
-	}
-
 	Resource::instance()->updateLights();
 
 	// I put the camera update function in render scene

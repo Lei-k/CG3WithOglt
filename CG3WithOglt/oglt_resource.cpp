@@ -245,40 +245,54 @@ SpotLight* oglt::Resource::findSpotLight(const string & lightName)
 	return NULL;
 }
 
-float testNum = 0.91f;
 void oglt::Resource::setUpLights()
 {
-	FOR(i, ESZ(directionalLights)) {
-		uboLights.addData(&spotLights[i].getLightParameter()->position, sizeof(glm::vec4));
-		uboLights.addData(&spotLights[i].getLightParameter()->direction, sizeof(glm::vec4));
-		uboLights.addData(&spotLights[i].getLightParameter()->ambient, sizeof(glm::vec4));
-		uboLights.addData(&spotLights[i].getLightParameter()->diffuse, sizeof(glm::vec4));
-		uboLights.addData(&spotLights[i].getLightParameter()->specular, sizeof(glm::vec4));
-	}
 	int maxSize = MAX_DIRECTIONAL_LIGHTS;
-	SFOR(i, ESZ(directionalLights), maxSize - 1) {
-		uboLights.addData(NULL, sizeof(glm::vec4));
-		uboLights.addData(NULL, sizeof(glm::vec4));
-		uboLights.addData(NULL, sizeof(glm::vec4));
-		uboLights.addData(NULL, sizeof(glm::vec4));
-		uboLights.addData(NULL, sizeof(glm::vec4));
+	int currentSize = directionalLights.size();
+	FOR(i, maxSize) {
+		uboLights.addData(i < currentSize ? 
+			&directionalLights[i].getLightParameter()->position : NULL, sizeof(glm::vec4));
+		uboLights.addData(i < currentSize ?
+			&directionalLights[i].getLightParameter()->direction : NULL, sizeof(glm::vec4));
+		uboLights.addData(i < currentSize ? 
+			&directionalLights[i].getLightParameter()->ambient : NULL, sizeof(glm::vec4));
+		uboLights.addData(i < currentSize ?
+			&directionalLights[i].getLightParameter()->diffuse : NULL, sizeof(glm::vec4));
+		uboLights.addData(i < currentSize ?
+			&directionalLights[i].getLightParameter()->specular : NULL, sizeof(glm::vec4));
 	}
-	FOR(i, ESZ(spotLights)) {
-		uboLights.addData(&spotLights[i].getLightParameter()->position, sizeof(glm::vec3));
-		uboLights.addData(&spotLights[i].getLightParameter()->cutOff, sizeof(GLfloat));
-		uboLights.addData(&spotLights[i].getLightParameter()->direction, sizeof(glm::vec3));
-		uboLights.addData(&spotLights[i].getLightParameter()->outerCutOff, sizeof(GLfloat));
-		uboLights.addData(&spotLights[i].getLightParameter()->ambient, sizeof(glm::vec3));
-		uboLights.addData(&spotLights[i].getLightParameter()->constant, sizeof(GLfloat));
-		uboLights.addData(&spotLights[i].getLightParameter()->diffuse, sizeof(glm::vec3));
-		uboLights.addData(&spotLights[i].getLightParameter()->linear, sizeof(GLfloat));
-		uboLights.addData(&spotLights[i].getLightParameter()->specular, sizeof(glm::vec3));
-		uboLights.addData(&spotLights[i].getLightParameter()->quadratic, sizeof(GLfloat));
-	}
+
 	maxSize = MAX_SPOT_LIGHTS;
-	SFOR(i, ESZ(spotLights), maxSize - 1) {
-		uboLights.addData(NULL, sizeof(SpotLightParameter));
+	currentSize = spotLights.size();
+	FOR(i, maxSize) {
+		uboLights.addData(i < currentSize ? 
+			&spotLights[i].getLightParameter()->position : NULL, sizeof(glm::vec3));
+		uboLights.addData(i < currentSize ? 
+			&spotLights[i].getLightParameter()->cutOff : NULL, sizeof(GLfloat));
+		uboLights.addData(i < currentSize ? 
+			&spotLights[i].getLightParameter()->direction : NULL, sizeof(glm::vec3));
+		uboLights.addData(i < currentSize ? 
+			&spotLights[i].getLightParameter()->outerCutOff : NULL, sizeof(GLfloat));
+		uboLights.addData(i < currentSize ? 
+			&spotLights[i].getLightParameter()->ambient : NULL, sizeof(glm::vec3));
+		uboLights.addData(i < currentSize ? 
+			&spotLights[i].getLightParameter()->constant : NULL, sizeof(GLfloat));
+		uboLights.addData(i < currentSize ? 
+			&spotLights[i].getLightParameter()->diffuse : NULL, sizeof(glm::vec3));
+		uboLights.addData(i < currentSize ? 
+			&spotLights[i].getLightParameter()->linear : NULL, sizeof(GLfloat));
+		uboLights.addData(i < currentSize ? 
+			&spotLights[i].getLightParameter()->specular : NULL, sizeof(glm::vec3));
+		uboLights.addData(i < currentSize ? 
+			&spotLights[i].getLightParameter()->quadratic : NULL, sizeof(GLfloat));
 	}
+
+	directionalLightCount = directionalLights.size();
+	spotLightCount = spotLights.size();
+
+	uboLights.addData(&directionalLightCount, sizeof(GLint));
+	uboLights.addData(&spotLightCount, sizeof(GLint));
+
 	uboLights.uploadBufferData(1, GL_DYNAMIC_DRAW);
 	uboLights.updateBuffer();
 }
@@ -294,11 +308,6 @@ void oglt::Resource::updateLights()
 	}
 
 	uboLights.updateBuffer();
-
-	/*FOR(i, ESZ(shaderPrograms)) {
-		shaderPrograms[i].setUniform("direcationalLightNum", ESZ(directionalLights));
-		shaderPrograms[i].setUniform("spotLightNum", ESZ(spotLights));
-	}*/
 }
 
 Resource::Resource()
