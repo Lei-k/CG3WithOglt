@@ -52,6 +52,9 @@ void main()
 	//CaculateLights
 	vec3 lightColor=vec3(0.0,0.0,0.0);
 	
+	for(int i = 0 ; i < directionalLightNum ; i++){
+		lightColor +=CaculDirectionalLightColor(vWorldPos,unitNormal,CameraPos,directionalLights[i],vTexColor);
+	}
 	
 	for(int i = 0 ; i < spotLightNum ; i++){
 		//lightColor+= CaculSpotLightColor(vWorldPos,unitNormal,CameraPos,spotLights[i],vTexColor);

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <GL\glew.h>
+#include <AntTweakBar.h>
 #include <glm\glm.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include <glm\gtc\quaternion.hpp>
 
 namespace oglt {
 
@@ -28,6 +29,11 @@ namespace oglt {
 #define OGLT_INVALID_LIGHT_ID 0xFFFFFFFF
 
 	typedef unsigned int uint;
+
+	enum OGLT_CURSOR_TYPE {
+		OGLT_CURSOR_NONE,
+		OGLT_CURSOR_ARROW
+	};
 
 	enum OGLT_BUTTON {
 		OGLT_BUTTON_RIGHT,

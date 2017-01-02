@@ -22,6 +22,7 @@ namespace oglt {
 		virtual void swapBuffers();
 
 		virtual void setCursor(int x, int y);
+		virtual void setCursor(OGLT_CURSOR_TYPE cursorType);
 		virtual void getCursor(int& x, int& y);
 
 		virtual bool key(int ikey);

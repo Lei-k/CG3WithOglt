@@ -25,9 +25,6 @@ FlyingCamera camera;
 SceneObject worldTree, mikuObj, stageObj;
 FbxModel mikuModel, stageModel;
 
-Shader ortho, font, vtMain, fgMain, dirLight, vtSkin, fgSkin, vtReflect, fgReflect, fgHandPaint,
-vtFurSkin, gmFurSkin, fgFurSkin, fgLights, fgLighting;
-
 vec3 sunDir = vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0);
 
 vector<oglt::uint> skyboxIds;
@@ -40,6 +37,8 @@ int cameraUpdateMode = OGLT_UPDATEA_CAMERA_WALK | OGLT_UPDATE_CAMERA_ROTATE;
 AudioSource testSource;
 
 UniformBufferObject uboMatrix;
+
+TwBar* bar;
 
 void bindModelTextureId(FbxModel& fbxModel, MaterialParam textureType, oglt::uint textureId) {
 	bool notTexture = textureType != MaterialParam::DIFFUSE && textureType != MaterialParam::CUBE_MAP
@@ -68,76 +67,41 @@ void bindModelTextureId(FbxModel& fbxModel, MaterialParam textureType, oglt::uin
 }
 
 void initShaders() {
-	ortho.loadShader("data/shaders/ortho2D.vert", GL_VERTEX_SHADER);
-	font.loadShader("data/shaders/font2D.frag", GL_FRAGMENT_SHADER);
-	vtMain.loadShader("data/shaders/main_shader.vert", GL_VERTEX_SHADER);
-	fgMain.loadShader("data/shaders/main_shader.frag", GL_FRAGMENT_SHADER);
-	dirLight.loadShader("data/shaders/dirLight.frag", GL_FRAGMENT_SHADER);
-	vtSkin.loadShader("data/shaders/skinning_shader.vert", GL_VERTEX_SHADER);
-	fgSkin.loadShader("data/shaders/skinning_shader.frag", GL_FRAGMENT_SHADER);
-	vtReflect.loadShader("data/shaders/reflect.vert", GL_VERTEX_SHADER);
-	fgReflect.loadShader("data/shaders/reflect.frag", GL_FRAGMENT_SHADER);
-	fgHandPaint.loadShader("data/shaders/hand_painted_shader.frag", GL_FRAGMENT_SHADER);
-	vtFurSkin.loadShader("data/shaders/fur_skinning_shader.vert", GL_VERTEX_SHADER);
-	gmFurSkin.loadShader("data/shaders/fur_skinning_shader.geom", GL_GEOMETRY_SHADER);
-	fgFurSkin.loadShader("data/shaders/fur_skinning_shader.frag", GL_FRAGMENT_SHADER);
-	fgLights.loadShader("data/shaders/Lights.frag", GL_FRAGMENT_SHADER);
-	fgLighting.loadShader("data/shaders/lighting.frag", GL_FRAGMENT_SHADER);
+	Resource::instance()->addShader("ortho", "data/shaders/ortho2D.vert", GL_VERTEX_SHADER);
+	Resource::instance()->addShader("fgFont", "data/shaders/font2D.frag", GL_FRAGMENT_SHADER);
+	Resource::instance()->addShader("vtMain", "data/shaders/main_shader.vert", GL_VERTEX_SHADER);
+	Resource::instance()->addShader("fgMain", "data/shaders/main_shader.frag", GL_FRAGMENT_SHADER);
+	Resource::instance()->addShader("fgDirLight", "data/shaders/dirLight.frag", GL_FRAGMENT_SHADER);
+	Resource::instance()->addShader("vtSkin", "data/shaders/skinning_shader.vert", GL_VERTEX_SHADER);
+	Resource::instance()->addShader("fgSkin", "data/shaders/skinning_shader.frag", GL_FRAGMENT_SHADER);
+	Resource::instance()->addShader("vtReflect", "data/shaders/reflect.vert", GL_VERTEX_SHADER);
+	Resource::instance()->addShader("fgReflect", "data/shaders/reflect.frag", GL_FRAGMENT_SHADER);
+	Resource::instance()->addShader("fgHandPaint", "data/shaders/hand_painted_shader.frag", GL_FRAGMENT_SHADER);
+	Resource::instance()->addShader("vtFurSkin", "data/shaders/fur_skinning_shader.vert", GL_VERTEX_SHADER);
+	Resource::instance()->addShader("geFurSkin", "data/shaders/fur_skinning_shader.geom", GL_GEOMETRY_SHADER);
+	Resource::instance()->addShader("fgFurSkin", "data/shaders/fur_skinning_shader.frag", GL_FRAGMENT_SHADER);
+	Resource::instance()->addShader("fgLights", "data/shaders/Lights.frag", GL_FRAGMENT_SHADER);
+	Resource::instance()->addShader("fgLighting", "data/shaders/lighting.frag", GL_FRAGMENT_SHADER);
 
-	ShaderProgram spFont, spMain, spSkin, spReflect, spHandSkin, spFurSkin, spLightingSkin;
-	spFont.createProgram();
-	spFont.addShaderToProgram(&ortho);
-	spFont.addShaderToProgram(&font);
-	spFont.linkProgram();
-
-	spMain.createProgram();
-	spMain.addShaderToProgram(&vtMain);
-	spMain.addShaderToProgram(&dirLight);
-	spMain.addShaderToProgram(&fgMain);
-	spMain.linkProgram();
-
-	spSkin.createProgram();
-	spSkin.addShaderToProgram(&vtSkin);
-	spSkin.addShaderToProgram(&dirLight);
-	spSkin.addShaderToProgram(&fgSkin);
-	spSkin.linkProgram();
-
-	spReflect.createProgram();
-	spReflect.addShaderToProgram(&vtReflect);
-	spReflect.addShaderToProgram(&fgLights);
-	spReflect.addShaderToProgram(&fgReflect);
-	spReflect.linkProgram();
-
-	spHandSkin.createProgram();
-	spHandSkin.addShaderToProgram(&vtSkin);
-	spHandSkin.addShaderToProgram(&dirLight);
-	spHandSkin.addShaderToProgram(&fgHandPaint);
-	spHandSkin.linkProgram();
-
-	spFurSkin.createProgram();
-	spFurSkin.addShaderToProgram(&vtFurSkin);
-	spFurSkin.addShaderToProgram(&gmFurSkin);
-	spFurSkin.addShaderToProgram(&fgFurSkin);
-	spFurSkin.linkProgram();
-
-	spLightingSkin.createProgram();
-	spLightingSkin.addShaderToProgram(&vtSkin);
-	spLightingSkin.addShaderToProgram(&fgLights);
-	spLightingSkin.addShaderToProgram(&fgLighting);
-	spLightingSkin.linkProgram();
-
-	Resource::instance()->addShaderProgram(spFont, "font");
-	Resource::instance()->addShaderProgram(spMain, "main");
-	Resource::instance()->addShaderProgram(spSkin, "skin");
-	Resource::instance()->addShaderProgram(spReflect, "reflect");
-	Resource::instance()->addShaderProgram(spHandSkin, "handedSkin");
-	Resource::instance()->addShaderProgram(spFurSkin, "furSkin");
-	Resource::instance()->addShaderProgram(spLightingSkin, "lightingSkin");
+	Resource::instance()->addShaderProgram("font", 2, "ortho", "fgFont");
+	Resource::instance()->addShaderProgram("main", 3, "vtMain", "fgDirLight", "fgMain");
+	Resource::instance()->addShaderProgram("skin", 3, "vtSkin", "fgDirLight", "fgSkin");
+	Resource::instance()->addShaderProgram("reflect", 3, "vtReflect", "fgLights", "fgReflect");
+	Resource::instance()->addShaderProgram("handedSkin", 3, "vtSkin", "fgDirLight", "fgHandPaint");
+	Resource::instance()->addShaderProgram("furSkin", 3, "vtFurSkin", "geFurSkin", "fgFurSkin");
+	Resource::instance()->addShaderProgram("lightingSkin", 3, "vtSkin", "fgLights", "fgLighting");
 }
 
 SceneObject spotLightBall;
 
 void initLights() {
+	DirectionalLight directionalLight;
+	directionalLight.setParam(LightParam::AMBIENT, vec3(0.1f, 0.1f, 0.1f));
+	directionalLight.setParam(LightParam::DIFFUSE, vec3(0.2f, 0.2f, 0.2f));
+	directionalLight.setParam(LightParam::SPECULAR, vec3(1.0f, 1.0f, 1.0f));
+	Resource::instance()->addDirectionalLight(directionalLight, "directionalLight1");
+	//Resource::instance()->addDirectionalLight(directionalLight, "directionalLight2");
+	
 	SpotLight spotLight;
 	spotLight.setParam(LightParam::AMBIENT, vec3(0.0f, 0.0f, 0.0f));
 	spotLight.setParam(LightParam::DIFFUSE, vec3(0.0f, 0.0f, 0.8f));
@@ -174,6 +138,40 @@ void initLights() {
 	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight5"));
 	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight6"));
 	worldTree.addChild(&spotLightBall);
+}
+
+vec3 directionalLight1Euler = vec3(0.0f);
+vec3 directionalLight2Euler = vec3(0.0f);
+vec3 eulerVector = vec3(0.0f);
+
+void initTwBar() {
+	bar = TwNewBar("TweakBar");
+	TwDefine(" GLOBAL help='This example shows how to integrate AntTweakBar with GLUT and OpenGL.' "); // Message added to the help bar.
+	TwDefine(" TweakBar size='200 350' color='96 216 224'");
+	TwStructMember positionMembers[] = {
+		{ "X", TW_TYPE_FLOAT, offsetof(vec3, x), "" },
+		{ "Y", TW_TYPE_FLOAT, offsetof(vec3, y), "" },
+		{ "Z", TW_TYPE_FLOAT, offsetof(vec3, z), "" } };
+	TwStructMember eulerMembers[] = {
+		{ "X", TW_TYPE_FLOAT, offsetof(vec3, x), "step=0.01" },
+		{ "Y", TW_TYPE_FLOAT, offsetof(vec3, y), "step=0.01" },
+		{ "Z", TW_TYPE_FLOAT, offsetof(vec3, z), "step=0.01" } };
+	TwType positionType = TwDefineStruct("Position", positionMembers, 3, sizeof(vec3), NULL, NULL);
+	TwType eulerType = TwDefineStruct("Euler", eulerMembers, 3, sizeof(vec3), NULL, NULL);
+
+	DirectionalLight* directinalLight = Resource::instance()->findDirectionalLight("directionalLight1");
+	if (directinalLight != NULL) {
+		TwAddVarRW(bar, "DirectionalLight1_Pos", positionType, &directinalLight->getLocalTransform()->position, "Group='DirectionalLight_1' Label='Position'");
+		TwAddVarRW(bar, "DirectionalLight1_Rot", eulerType, &directionalLight1Euler, "Group='DirectionalLight_1' Label='Rotate'");
+	}
+	directinalLight = Resource::instance()->findDirectionalLight("directionalLight2");
+	if (directinalLight != NULL) {
+		TwAddVarRW(bar, "DirectionalLight2_Pos", positionType, &directinalLight->getLocalTransform()->position, "Group='DirectionalLight_2' Label='Position'");
+		TwAddVarRW(bar, "DirectionalLight2_Rot", eulerType, &directionalLight2Euler, "Group='DirectionalLight_2' Label='Rotate'");
+	}
+
+	TwAddVarRW(bar, "SpotLight1_Pos", positionType, &spotLightBall.getLocalTransform()->position, "Group='SpotLightBall_1' Label='Position'");
+	TwAddVarRW(bar, "SpotLight1_Rot", eulerType, &eulerVector, "Group='SpotLightBall_1' Label='Rotate'");
 }
 
 void scene::initScene(oglt::IApp* app) {
@@ -228,7 +226,6 @@ void scene::initScene(oglt::IApp* app) {
 	mikuModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
 	mikuObj.addRenderObj(&mikuModel);
 	mikuObj.setShaderProgram(Resource::instance()->findShaderProgram("handedSkin"));
-	mikuObj.getLocalTransform()->position = vec3(0.0f, 0.0f, -10.0f);
 	mikuObj.getLocalTransform()->scale = vec3(0.75f, 0.75f, 0.75f);
 	worldTree.addChild(&mikuObj);
 
@@ -250,7 +247,7 @@ void scene::initScene(oglt::IApp* app) {
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
 
-	testSource.load("data/musics/Tell Your World.wav");
+	testSource.load("data/musics/Tell Your World Dance.wav");
 
 	initLights();
 	uboMatrix.createUniformBuffer();
@@ -259,19 +256,12 @@ void scene::initScene(oglt::IApp* app) {
 	uboMatrix.uploadBufferData(0, GL_DYNAMIC_DRAW);
 	uboMatrix.updateBuffer();
 
-	int uniformBufferAlignSize = 0;
-	glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uniformBufferAlignSize);
-	cout << "ubo align size: " << uniformBufferAlignSize << endl;
+	initTwBar();
 }
 
 float animTimer = 0.0f;
 bool playAnimation = false;
 int switchShaderProgram = 0;
-float rotateZ = 0.0f;
-float rotateX = 0.0f;
-float rotateY = 0.0f;
-float positionY = 70.0f;
-float outerFactor = 0.5f;
 
 void oglt::scene::updateScene(IApp * app)
 {
@@ -281,9 +271,11 @@ void oglt::scene::updateScene(IApp * app)
 	if (app->oneKey('r') || app->oneKey('R')) {
 		if (cameraUpdateMode & OGLT_UPDATE_CAMERA_ROTATE) {
 			cameraUpdateMode ^= OGLT_UPDATE_CAMERA_ROTATE;
+			app->setCursor(OGLT_CURSOR_ARROW);
 		}
 		else {
 			cameraUpdateMode |= OGLT_UPDATE_CAMERA_ROTATE;
+			app->setCursor(OGLT_CURSOR_NONE);
 		}
 	}
 
@@ -331,39 +323,25 @@ void oglt::scene::updateScene(IApp * app)
 	}
 
 	if (app->key('4')) {
-		rotateZ += 10.0f * app->getDeltaTime();
+		eulerVector.x += 10.0f * app->getDeltaTime();
 	}
 
 	if (app->key('5')) {
-		rotateX += 10.0f * app->getDeltaTime();
+		eulerVector.y += 10.0f * app->getDeltaTime();
 	}
 
 	if (app->key('6')) {
-		rotateY += 10.0f * app->getDeltaTime();
+		eulerVector.z += 10.0f * app->getDeltaTime();
 	}
 
-	if (app->key('u')) {
-		positionY += 10.0f * app->getDeltaTime();
+	spotLightBall.getLocalTransform()->rotation = quat(eulerVector);
+	DirectionalLight* directinalLight = Resource::instance()->findDirectionalLight("directionalLight1");
+	if (directinalLight != NULL) {
+		directinalLight->getLocalTransform()->rotation = quat(directionalLight1Euler);
 	}
-
-	if (app->key('j')) {
-		positionY -= 10.0f * app->getDeltaTime();
-	}
-
-	spotLightBall.getLocalTransform()->rotation = quat(vec3(rotateX, rotateY, rotateZ));
-	spotLightBall.getLocalTransform()->position = vec3(0.0f, positionY, 0.0f);
-
-	if (app->key('3')) {
-		SpotLight* spotLight1 = Resource::instance()->findSpotLight("spotLight1");
-		SpotLight* spotLight2 = Resource::instance()->findSpotLight("spotLight2");
-		if (spotLight1 != NULL && spotLight2 != NULL) {
-			outerFactor -= 0.2f * app->getDeltaTime();
-			if (outerFactor < 0.0f) {
-				outerFactor = 0.5f;
-			}
-			spotLight1->setParam(LightParam::OUTER_CUTOFF, outerFactor);
-			spotLight2->setParam(LightParam::OUTER_CUTOFF, outerFactor);
-		}
+	directinalLight = Resource::instance()->findDirectionalLight("directionalLight2");
+	if (directinalLight != NULL) {
+		directinalLight->getLocalTransform()->rotation = quat(directionalLight2Euler);
 	}
 }
 
@@ -423,26 +401,15 @@ void scene::renderScene(oglt::IApp* app) {
 		bindModelTextureId(mikuModel, CUBE_MAP, cubeMapTextureIds[skyboxIndex]);
 	}
 
+	if (!(cameraUpdateMode & OGLT_UPDATE_CAMERA_ROTATE)) {
+		TwDraw();
+	}
+
 	app->swapBuffers();
 }
 
 void scene::releaseScene(oglt::IApp* app) {
-	ortho.deleteShader();
-	font.deleteShader();
-	
-	vtMain.deleteShader();
-	fgMain.deleteShader();
-
-	vtSkin.deleteShader();
-	fgSkin.deleteShader();
-	vtReflect.deleteShader();
-	fgReflect.deleteShader();
-	fgHandPaint.deleteShader();
-	vtFurSkin.deleteShader();
-	gmFurSkin.deleteShader();
-	fgFurSkin.deleteShader();
-
-	dirLight.deleteShader();
-
 	FbxModel::destroyManager();
+
+	TwDeleteBar(bar);
 }

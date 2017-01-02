@@ -15,9 +15,16 @@ namespace oglt {
 		static Resource* instance();
 
 		uint addShaderProgram(ShaderProgram& shaderProgram);
+		uint addShaderProgram(const string& programName, int shaderCount, ...);
 		uint addShaderProgram(ShaderProgram& shaderProgram, const string& programName);
 		ShaderProgram* getShaderProgram(uint shaderId);
 		ShaderProgram* findShaderProgram(const string& programName);
+
+		uint addShader(Shader& shader);
+		uint addShader(const string& shaderName, const string& filePath, int shaderType);
+		uint addShader(Shader& shader, const string& shaderName);
+		Shader* getShader(uint shaderId);
+		Shader* findShader(const string& shaderName);
 
 		uint addTexture(Texture& texture);
 		uint addTexture(const string& texturePath);
@@ -57,9 +64,15 @@ namespace oglt {
 
 		vector<ShaderProgram> shaderPrograms;
 		map<string, uint> shaderProgramMap;
+
+		vector<Shader> shaders;
+		map<string, uint> shaderMap;
+
 		vector<Texture> textures;
+
 		vector<IMaterial*> materials;
 		map<string, uint> materialMap;
+
 		vector<scene::Skybox> skyboxes;
 
 		UniformBufferObject uboLights;

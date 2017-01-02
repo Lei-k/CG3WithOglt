@@ -38,27 +38,27 @@ struct Material{
 };
 
 vec3 CaculSmoothSpotLight(vec3 WorldPos,vec3 Normal,vec3 cameraPos,Spotlight light,vec3 textureColor);
-vec3 CaculDirectionalLightColor(vec3 WorldPos,vec3 Normal,vec3 CameraPos,Material Objmaterial,DirectionalLight light);
+vec3 CaculDirectionalLightColor(vec3 WorldPos,vec3 Normal,vec3 CameraPos,DirectionalLight light, vec3 textureColor);
 vec3 CaculSpotLightColor(vec3 WorldPos,vec3 Normal,vec3 cameraPos,Spotlight light,vec3 textureColor);
 vec3 BlinnShading(vec3 textureColor,vec3 WorldPos,vec3 lightPos,vec3 CameraPos,vec3 Normal);
 #definition_part
 
-vec3 CaculDirectionalLightColor(vec3 WorldPos,vec3 Normal,vec3 CameraPos,Material Objmaterial,DirectionalLight light)
+vec3 CaculDirectionalLightColor(vec3 WorldPos,vec3 Normal,vec3 CameraPos,DirectionalLight light, vec3 textureColor)
 {
 
 	vec3 norm=normalize(Normal);
-	vec3 ambient=light.ambient*Objmaterial.ambient;
+	vec3 ambient=light.ambient*textureColor;
 
 	vec3 lightDir=normalize(-light.direction);
 
 
 	float diff=max(dot(norm,lightDir),0.0);
-	vec3 diffuse=light.diffuse *diff*Objmaterial.diffuse;
+	vec3 diffuse=light.diffuse *diff*textureColor;
 
 	vec3 viewDir= normalize(CameraPos-WorldPos);
 	vec3 reflectDir = reflect(-lightDir,norm);
-	float spec = pow(max(dot(viewDir,reflectDir),0.0),Objmaterial.shininess);
-	vec3 specular =light.specular * spec * Objmaterial.specular;
+	float spec = pow(max(dot(viewDir,reflectDir),0.0),32.0);
+	vec3 specular =light.specular * spec * textureColor;
 
 	return vec3(ambient+diffuse+specular);
 }

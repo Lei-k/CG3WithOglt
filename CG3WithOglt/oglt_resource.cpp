@@ -40,6 +40,25 @@ uint Resource::addShaderProgram(ShaderProgram & shaderProgram)
 	return addShaderProgram(shaderProgram, "");
 }
 
+uint oglt::Resource::addShaderProgram(const string & programName, int shaderCount, ...)
+{
+	ShaderProgram newProgram;
+	newProgram.createProgram();
+	va_list ap;
+	va_start(ap, shaderCount);
+	while (shaderCount--) {
+		char* name = va_arg(ap, char*);
+		string shaderName = name;
+		Shader* shader = findShader(shaderName);
+		if (shader != NULL) {
+			newProgram.addShaderToProgram(shader);
+		}
+	}
+	va_end(ap);
+	newProgram.linkProgram();
+	return addShaderProgram(newProgram, programName);
+}
+
 uint Resource::addShaderProgram(ShaderProgram & shaderProgram, const string& programName)
 {
 	// the shader program id store in Resource class
@@ -78,6 +97,56 @@ ShaderProgram * oglt::Resource::findShaderProgram(const string & programName)
 		pShaderProgram = getShaderProgram(shaderProgramMap[programName]);
 	}
 	return pShaderProgram;
+}
+
+uint oglt::Resource::addShader(Shader & shader)
+{
+	addShader(shader, "");
+}
+
+uint oglt::Resource::addShader(const string& shaderName, const string & filePath, int shaderType)
+{
+	Shader newShader;
+	newShader.loadShader(filePath, shaderType);
+	return addShader(newShader, shaderName);
+}
+
+uint oglt::Resource::addShader(Shader & shader, const string & shaderName)
+{
+	uint shaderId = OGLT_INVALID_SHADER_ID;
+	FOR(i, ESZ(shaders)) {
+		if (shader.getShaderID() == shaders[i].getShaderID()) {
+			shaderId = i;
+			break;
+		}
+	}
+
+	if(shaderId == OGLT_INVALID_SHADER_ID){
+		shaderId = ESZ(shaders);
+		shaders.push_back(shader);
+		string newShaderName = shaderName;
+		if (newShaderName.size() == 0) {
+			newShaderName = "shader " + shaderId;
+		}
+		shaderMap[newShaderName] = shaderId;
+	}
+	return shaderId;
+}
+
+Shader * oglt::Resource::getShader(uint shaderId)
+{
+	if (shaderId == OGLT_INVALID_SHADER_ID || shaderId >= shaders.size()) {
+		return NULL;
+	}
+	return &shaders[shaderId];
+}
+
+Shader * oglt::Resource::findShader(const string & shaderName)
+{
+	if (shaderMap.find(shaderName) != shaderMap.end()) {
+		return getShader(shaderMap[shaderName]);
+	}
+	return NULL;
 }
 
 uint Resource::addTexture(Texture & texture)
@@ -331,6 +400,10 @@ Resource::~Resource()
 
 	FOR(i, ESZ(shaderPrograms)) {
 		shaderPrograms[i].deleteProgram();
+	}
+
+	FOR(i, ESZ(shaders)) {
+		shaders[i].deleteShader();
 	}
 
 	uboLights.deleteBuffer();

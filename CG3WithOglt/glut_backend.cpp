@@ -46,6 +46,11 @@ bool oglt::glutBackendCreateWindow(uint width, uint height, const char* title, i
 		return false;
 	}
 
+	glutCreateMenu(NULL);
+	// Initialize AntTweakBar
+	TwInit(TW_OPENGL, NULL);
+	TwWindowSize(width, height);
+
 	return true;
 }
 
@@ -90,6 +95,22 @@ void oglt::glutBackendExit()
 void oglt::glutBackendSetCursor(int x, int y)
 {
 	glutWarpPointer(x, y);
+}
+
+void oglt::glutBackendSetCursor(OGLT_CURSOR_TYPE cursorType)
+{
+	int glutCurType = GLUT_CURSOR_LEFT_ARROW;
+	switch (cursorType) {
+	case OGLT_CURSOR_ARROW:
+		glutCurType = GLUT_CURSOR_LEFT_ARROW;
+		break;
+	case OGLT_CURSOR_NONE:
+		glutCurType = GLUT_CURSOR_NONE;
+		break;
+	default:
+		cout << "use oglt undefine cursor type" << endl;
+	}
+	glutSetCursor(glutCurType);
 }
 
 void oglt::glutBackendSwapBuffers() {
@@ -190,10 +211,12 @@ static void mouse(int glutButton, int glutState, int x, int y) {
 	OGLT_BUTTON ogltButton = toOgltButton(glutButton);
 	OGLT_BUTTON_STATE ogltState = toOgltButtonState(glutState);
 	spCallback->mouse(ogltButton, ogltState, x, y);
+	TwEventMouseButtonGLUT(glutButton, glutState, x, y);
 }
 
 static void mouseMotion(int x, int y) {
 	spCallback->mouseMotion(x, y);
+	TwEventMouseMotionGLUT(x, y);
 }
 
 static void keyboard(unsigned char glutKey, int x, int y) {
@@ -214,6 +237,7 @@ static void keyboard(unsigned char glutKey, int x, int y) {
 			cout << "Error: use oglt undefined key" << endl;
 		}
 	}
+	TwEventKeyboardGLUT(glutKey, x, y);
 }
 
 static void keyboardUp(unsigned char glutKey, int x, int y) {
@@ -232,12 +256,14 @@ static void keyboardUp(unsigned char glutKey, int x, int y) {
 
 static void reshape(int width, int height) {
 	spCallback->reshape(width, height);
+	TwWindowSize(width, height);
 }
 
 void initCallback() {
 	glutDisplayFunc(renderScene);
 	glutIdleFunc(renderScene);
 	glutMouseFunc(mouse);
+	glutMotionFunc((GLUTmousemotionfun)TwEventMouseMotionGLUT);
 	glutPassiveMotionFunc(mouseMotion);
 	glutKeyboardFunc(keyboard);
 	glutKeyboardUpFunc(keyboardUp);

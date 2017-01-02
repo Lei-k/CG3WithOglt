@@ -73,8 +73,8 @@
     <LibraryPath>..\libs;..\libs\assimplib\x86;..\libs\freetypelib;..\libs\glewlib;..\libs\glutlib;..\libs\fbxlib\vs2015\x86\debug;..\libs\openallib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>..\includes;..\includes\assimpinclude;..\includes\glm;..\includes\freetypeinclude;..\includes\glutinclude;..\includes\glewinclude;..\includes\fbxinclude;..\includes\openalinclude;$(IncludePath)</IncludePath>
-    <LibraryPath>..\libs;..\libs\assimplib\x86;..\libs\freetypelib;..\libs\glewlib;..\libs\glutlib;..\libs\fbxlib\vs2015\x86\release;..\libs\openallib;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\includes;..\includes\assimpinclude;..\includes\glm;..\includes\freetypeinclude;..\includes\glutinclude;..\includes\glewinclude;..\includes\fbxinclude;..\includes\openalinclude;..\includes\antTweakBarinclude;$(IncludePath)</IncludePath>
+    <LibraryPath>..\libs;..\libs\assimplib\x86;..\libs\freetypelib;..\libs\glewlib;..\libs\glutlib;..\libs\fbxlib\vs2015\x86\release;..\libs\openallib;..\libs\antTweakBarlib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -106,7 +106,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>glew32.lib;libfbxsdk-md.lib;OpenAL32.lib;alut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32.lib;libfbxsdk-md.lib;OpenAL32.lib;alut.lib;AntTweakBar.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

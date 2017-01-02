@@ -112,6 +112,11 @@ void OgltApp::setCursor(int x, int y)
 	glutBackendSetCursor(x, y);
 }
 
+void oglt::OgltApp::setCursor(OGLT_CURSOR_TYPE cursorType)
+{
+	glutBackendSetCursor(cursorType);
+}
+
 void OgltApp::getCursor(int & x, int & y)
 {
 	x = cursor.x;

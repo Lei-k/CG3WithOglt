@@ -10,5 +10,6 @@ namespace oglt {
 	void glutBackendRun(ICallback* pCallback);
 	void glutBackendExit();
 	void glutBackendSetCursor(int x, int y);
+	void glutBackendSetCursor(OGLT_CURSOR_TYPE cursorType);
 	void glutBackendSwapBuffers();
 }
