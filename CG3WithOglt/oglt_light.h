@@ -16,12 +16,15 @@ namespace oglt {
 			glm::vec3 ambient;
 			glm::vec3 diffuse;
 			glm::vec3 specular;
+			glm::quat rotation;
+			glm::vec3 eulerRotation;
 
 			float cutOff;
 			float outerCutOff;
 			float constant;
 			float linear;
 			float quadratic;
+			bool active;
 		};
 
 		struct DirectionalLightParameter {
@@ -30,6 +33,9 @@ namespace oglt {
 			glm::vec3 ambient;
 			glm::vec3 diffuse;
 			glm::vec3 specular;
+			glm::quat rotation;
+			glm::vec3 eulerRotation;
+			bool active;
 		};
 
 		class DirectionalLight : public SceneNode {

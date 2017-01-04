@@ -19,6 +19,9 @@ struct Spotlight
 
     vec3 specular; 
     float quadratic;
+
+	vec3 padding;
+	bool enable;
 };
 struct DirectionalLight
 {
@@ -27,6 +30,7 @@ struct DirectionalLight
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
+	bool enable;
 };
 
 struct Material{

@@ -299,6 +299,11 @@ DirectionalLight* oglt::Resource::findDirectionalLight(const string & lightName)
 	return NULL;
 }
 
+vector<scene::DirectionalLight>* oglt::Resource::getDirecationalLights()
+{
+	return &directionalLights;
+}
+
 SpotLight* oglt::Resource::getSpotLight(uint lightId)
 {
 	if (lightId == OGLT_INVALID_LIGHT_ID || lightId >= ESZ(spotLights))
@@ -314,13 +319,18 @@ SpotLight* oglt::Resource::findSpotLight(const string & lightName)
 	return NULL;
 }
 
+vector<scene::SpotLight>* oglt::Resource::getSpotLights()
+{
+	return &spotLights;
+}
+
 void oglt::Resource::setUpLights()
 {
 	int maxSize = MAX_DIRECTIONAL_LIGHTS;
 	int currentSize = directionalLights.size();
 	FOR(i, maxSize) {
 		uboLights.addData(i < currentSize ? 
-			&directionalLights[i].getLightParameter()->position : NULL, sizeof(glm::vec4));
+			&directionalLights[i].getWorldTransform()->position : NULL, sizeof(glm::vec4));
 		uboLights.addData(i < currentSize ?
 			&directionalLights[i].getLightParameter()->direction : NULL, sizeof(glm::vec4));
 		uboLights.addData(i < currentSize ? 
@@ -328,14 +338,16 @@ void oglt::Resource::setUpLights()
 		uboLights.addData(i < currentSize ?
 			&directionalLights[i].getLightParameter()->diffuse : NULL, sizeof(glm::vec4));
 		uboLights.addData(i < currentSize ?
-			&directionalLights[i].getLightParameter()->specular : NULL, sizeof(glm::vec4));
+			&directionalLights[i].getLightParameter()->specular : NULL, sizeof(glm::vec3));
+		uboLights.addData(i < currentSize ?
+			&directionalLights[i].getLightParameter()->active : NULL, sizeof(GLint));
 	}
 
 	maxSize = MAX_SPOT_LIGHTS;
 	currentSize = spotLights.size();
 	FOR(i, maxSize) {
 		uboLights.addData(i < currentSize ? 
-			&spotLights[i].getLightParameter()->position : NULL, sizeof(glm::vec3));
+			&spotLights[i].getWorldTransform()->position : NULL, sizeof(glm::vec3));
 		uboLights.addData(i < currentSize ? 
 			&spotLights[i].getLightParameter()->cutOff : NULL, sizeof(GLfloat));
 		uboLights.addData(i < currentSize ? 
@@ -354,6 +366,10 @@ void oglt::Resource::setUpLights()
 			&spotLights[i].getLightParameter()->specular : NULL, sizeof(glm::vec3));
 		uboLights.addData(i < currentSize ? 
 			&spotLights[i].getLightParameter()->quadratic : NULL, sizeof(GLfloat));
+		// padding data
+		uboLights.addData(NULL, sizeof(glm::vec3));
+		uboLights.addData(i < currentSize ?
+			&spotLights[i].getLightParameter()->active : NULL, sizeof(GLint));
 	}
 
 	directionalLightCount = directionalLights.size();

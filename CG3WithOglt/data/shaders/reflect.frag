@@ -13,8 +13,8 @@ uniform vec4 vColor;
 
 #include "Lights.frag"
 
-const int maxDirectionalLights = 10;
-const int maxSpotLights = 10;
+const int maxDirectionalLights = 50;
+const int maxSpotLights = 50;
 
 layout(std140,binding = 1) uniform LightSourceBlock
 {
@@ -48,17 +48,22 @@ void main()
 	
 	vec3 vNormalized = normalize(vNormal);
 	
-	vec3 vTexColor = texture2D(gSampler, vTexCoord).rgb;
+	vec4 vTexColor = texture2D(gSampler, vTexCoord);
+	vec3 vTexColorRgb = vTexColor.rgb;
 	//CaculateLights
 	vec3 lightColor=vec3(0.0,0.0,0.0);
 	
 	for(int i = 0 ; i < directionalLightNum ; i++){
-		lightColor +=CaculDirectionalLightColor(vWorldPos,unitNormal,CameraPos,directionalLights[i],vTexColor);
+		if(directionalLights[i].enable){
+			lightColor +=CaculDirectionalLightColor(vWorldPos,unitNormal,CameraPos,directionalLights[i],vTexColorRgb);
+		}
 	}
 	
 	for(int i = 0 ; i < spotLightNum ; i++){
-		//lightColor+= CaculSpotLightColor(vWorldPos,unitNormal,CameraPos,spotLights[i],vTexColor);
-		lightColor +=CaculSmoothSpotLight(vWorldPos,unitNormal,CameraPos,spotLights[i],vTexColor);
+		if(spotLights[i].enable){
+			//lightColor+= CaculSpotLightColor(vWorldPos,unitNormal,CameraPos,spotLights[i],vTexColorRgb);
+			lightColor +=CaculSmoothSpotLight(vWorldPos,unitNormal,CameraPos,spotLights[i],vTexColorRgb);
+		}
 	}
 	//vec3 lightpos=vec3(0.0,5.0,0.0);
 	//vec3 vMixedColor = BlinnShading(vTexColor,vWorldPos,lightpos,CameraPos,unitNormal);
@@ -69,5 +74,5 @@ void main()
   	//vec4 vDirLightColor = GetDirectionalLightColor(sunLight, vNormalized);
 	//outputColor = mix(totalColor,Refract_Color, 0.5);//mix color by 1:1 You can change 
 													//transparency by change the float value
-    outputColor= vec4(lightColor, 1.0);
+    outputColor= vec4(lightColor, vTexColor.a);
 }

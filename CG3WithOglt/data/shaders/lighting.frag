@@ -13,8 +13,8 @@ uniform vec4 vColor;
 
 #include "Lights.frag"
 
-const int maxDirectionalLights = 10;
-const int maxSpotLights = 10;
+const int maxDirectionalLights = 50;
+const int maxSpotLights = 50;
 
 layout(std140,binding = 1) uniform LightSourceBlock
 {
@@ -36,13 +36,22 @@ void main()
 	vec3 unitNormal=normalize(vNormal);
 	
 	vec4 vTexColor = texture2D(gSampler, vTexCoord);
-	vec3 vTexRGB = vTexColor.rgb;
+	vec3 vTexColorRgb = vTexColor.rgb;
 	// CaculateLights
 	vec3 lightColor = vec3(0.0,0.0,0.0);
 	
 	
+	for(int i = 0 ; i < directionalLightNum ; i++){
+		if(directionalLights[i].enable){
+			lightColor +=CaculDirectionalLightColor(vWorldPos,unitNormal,CameraPos,directionalLights[i],vTexColorRgb);
+		}
+	}
+	
 	for(int i = 0 ; i < spotLightNum ; i++){
-		lightColor += CaculSmoothSpotLight(vWorldPos, unitNormal, CameraPos, spotLights[i], vTexRGB);
+		if(spotLights[i].enable){
+			//lightColor+= CaculSpotLightColor(vWorldPos,unitNormal,CameraPos,spotLights[i],vTexColorRgb);
+			lightColor +=CaculSmoothSpotLight(vWorldPos,unitNormal,CameraPos,spotLights[i],vTexColorRgb);
+		}
 	}
 
 	vec4 totalColor= vec4(lightColor,1.0);

@@ -44,8 +44,10 @@ namespace oglt {
 
 		scene::DirectionalLight* getDirectionalLight(uint lightId);
 		scene::DirectionalLight* findDirectionalLight(const string& lightName);
+		vector<scene::DirectionalLight>* getDirecationalLights();
 		scene::SpotLight* getSpotLight(uint lightId);
 		scene::SpotLight* findSpotLight(const string& lightName);
+		vector<scene::SpotLight>* getSpotLights();
 
 		void setUpLights();
 		void updateLights();
@@ -54,8 +56,8 @@ namespace oglt {
 #define DEFAULT_TEXTURE_ID 0;
 #define DEFAULT_MATERIAL_ID 0;
 
-#define MAX_DIRECTIONAL_LIGHTS 10;
-#define MAX_SPOT_LIGHTS 10;
+#define MAX_DIRECTIONAL_LIGHTS 50;
+#define MAX_SPOT_LIGHTS 50;
 
 		void initialize();
 

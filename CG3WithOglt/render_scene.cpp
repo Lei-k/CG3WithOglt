@@ -96,11 +96,14 @@ SceneObject spotLightBall;
 
 void initLights() {
 	DirectionalLight directionalLight;
-	directionalLight.setParam(LightParam::AMBIENT, vec3(0.1f, 0.1f, 0.1f));
-	directionalLight.setParam(LightParam::DIFFUSE, vec3(0.2f, 0.2f, 0.2f));
+	directionalLight.setParam(LightParam::AMBIENT, vec3(0.023f, 0.023f, 0.023f));
+	directionalLight.setParam(LightParam::DIFFUSE, vec3(0.1f, 0.1f, 0.1f));
 	directionalLight.setParam(LightParam::SPECULAR, vec3(1.0f, 1.0f, 1.0f));
 	Resource::instance()->addDirectionalLight(directionalLight, "directionalLight1");
-	//Resource::instance()->addDirectionalLight(directionalLight, "directionalLight2");
+	directionalLight.getLightParameter()->active = false;
+	Resource::instance()->addDirectionalLight(directionalLight, "directionalLight2");
+	worldTree.addChild(Resource::instance()->findDirectionalLight("directionalLight1"));
+	worldTree.addChild(Resource::instance()->findDirectionalLight("directionalLight2"));
 	
 	SpotLight spotLight;
 	spotLight.setParam(LightParam::AMBIENT, vec3(0.0f, 0.0f, 0.0f));
@@ -111,37 +114,61 @@ void initLights() {
 	spotLight.setParam(LightParam::QUADRATIC, 0.032f);
 	spotLight.setParam(LightParam::CUTOFF, 0.61f);
 	spotLight.setParam(LightParam::OUTER_CUTOFF, 0.5f);
-	spotLight.getLocalTransform()->position = vec3(0.0f, 0.0f, 0.0f);
+	spotLight.getLightParameter()->position = vec3(0.0f, 0.0f, 0.0f);
+	spotLight.getLightParameter()->eulerRotation = vec3(0.0f, 0.0f, 0.0f);
+	spotLight.getLightParameter()->active = false;
 	
-	Resource::instance()->addSpotLight(spotLight, "spotLight1");
+	Resource::instance()->addSpotLight(spotLight, "ball_1_spotLight1");
 	spotLight.setParam(LightParam::DIFFUSE, vec3(0.8f, 0.0f, 0.0f));
-	spotLight.getLocalTransform()->rotation = quat(vec3(0.0f, 0.0f, 90.0f));
-	Resource::instance()->addSpotLight(spotLight, "spotLight2");
+	spotLight.getLightParameter()->eulerRotation = vec3(0.0f, 0.0f, 90.0f);
+	Resource::instance()->addSpotLight(spotLight, "ball_1_spotLight2");
 	spotLight.setParam(LightParam::DIFFUSE, vec3(0.0f, 0.8f, 0.0f));
-	spotLight.getLocalTransform()->rotation = quat(vec3(0.0f, 0.0f, -90.0f));
-	Resource::instance()->addSpotLight(spotLight, "spotLight3");
+	spotLight.getLightParameter()->eulerRotation = vec3(0.0f, 0.0f, -90.0f);
+	Resource::instance()->addSpotLight(spotLight, "ball_1_spotLight3");
 	spotLight.setParam(LightParam::DIFFUSE, vec3(0.8f, 0.8f, 0.0f));
-	spotLight.getLocalTransform()->rotation = quat(vec3(0.0f, 0.0f, 180.0f));
-	Resource::instance()->addSpotLight(spotLight, "spotLight4");
+	spotLight.getLightParameter()->eulerRotation = vec3(0.0f, 0.0f, 180.0f);
+	Resource::instance()->addSpotLight(spotLight, "ball_1_spotLight4");
 	spotLight.setParam(LightParam::DIFFUSE, vec3(0.0f, 0.8f, 0.8f));
-	spotLight.getLocalTransform()->rotation = quat(vec3(90.0f, 0.0f, 0.0f));
-	Resource::instance()->addSpotLight(spotLight, "spotLight5");
+	spotLight.getLightParameter()->eulerRotation = vec3(90.0f, 0.0f, 0.0f);
+	Resource::instance()->addSpotLight(spotLight, "ball_1_spotLight5");
 	spotLight.setParam(LightParam::DIFFUSE, vec3(0.8f, 0.0f, 0.8f));
-	spotLight.getLocalTransform()->rotation = quat(vec3(-90.0f, 0.0f, 0.0f));
-	Resource::instance()->addSpotLight(spotLight, "spotLight6");
+	spotLight.getLightParameter()->eulerRotation = vec3(-90.0f, 0.0f, 0.0f);
+	Resource::instance()->addSpotLight(spotLight, "ball_1_spotLight6");
+
+	spotLight.setParam(LightParam::DIFFUSE, vec3(0.8f, 0.8f, 0.8f));
+	spotLight.getLightParameter()->active = true;
+	spotLight.getLightParameter()->position = vec3(0.0f, 235.0f, 0.0f);
+	spotLight.getLightParameter()->eulerRotation = vec3(0.0f, 0.0f, 0.0f);
+	spotLight.setParam(LightParam::CUTOFF, 0.92f);
+	spotLight.setParam(LightParam::OUTER_CUTOFF, 0.91f);
+	spotLight.setParam(LightParam::SPECULAR, vec3(0.0f, 0.0f, 0.0f));
+	Resource::instance()->addSpotLight(spotLight, "worldSpotLight1");
+	spotLight.getLightParameter()->position = vec3(0.0f, 103.0f, 205.0f);
+	spotLight.getLightParameter()->eulerRotation = vec3(1.25f, 0.0f, 0.0f);
+	Resource::instance()->addSpotLight(spotLight, "worldSpotLight2");
+	spotLight.getLightParameter()->position = vec3(208.0f, 235.0f, -11.0f);
+	spotLight.getLightParameter()->eulerRotation = vec3(0.0f, 0.0f, -0.912f);
+	Resource::instance()->addSpotLight(spotLight, "worldSpotLight3");
+	spotLight.getLightParameter()->position = vec3(-216.0f, 235.0f, -11.0f);
+	spotLight.getLightParameter()->eulerRotation = vec3(0.0f, 0.0f, 0.982f);
+	Resource::instance()->addSpotLight(spotLight, "worldSpotLight4");
 	Resource::instance()->setUpLights();
+
+	spotLightBall.addChild(Resource::instance()->findSpotLight("ball_1_spotLight1"));
+	spotLightBall.addChild(Resource::instance()->findSpotLight("ball_1_spotLight2"));
+	spotLightBall.addChild(Resource::instance()->findSpotLight("ball_1_spotLight3"));
+	spotLightBall.addChild(Resource::instance()->findSpotLight("ball_1_spotLight4"));
+	spotLightBall.addChild(Resource::instance()->findSpotLight("ball_1_spotLight5"));
+	spotLightBall.addChild(Resource::instance()->findSpotLight("ball_1_spotLight6"));
 	spotLightBall.getLocalTransform()->position = vec3(0.0f, 70.0f, 0.0f);
-	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight1"));
-	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight2"));
-	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight3"));
-	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight4"));
-	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight5"));
-	spotLightBall.addChild(Resource::instance()->findSpotLight("spotLight6"));
 	worldTree.addChild(&spotLightBall);
+
+	worldTree.addChild(Resource::instance()->findSpotLight("worldSpotLight1"));
+	worldTree.addChild(Resource::instance()->findSpotLight("worldSpotLight2"));
+	worldTree.addChild(Resource::instance()->findSpotLight("worldSpotLight3"));
+	worldTree.addChild(Resource::instance()->findSpotLight("worldSpotLight4"));
 }
 
-vec3 directionalLight1Euler = vec3(0.0f);
-vec3 directionalLight2Euler = vec3(0.0f);
 vec3 eulerVector = vec3(0.0f);
 
 void initTwBar() {
@@ -153,25 +180,58 @@ void initTwBar() {
 		{ "Y", TW_TYPE_FLOAT, offsetof(vec3, y), "" },
 		{ "Z", TW_TYPE_FLOAT, offsetof(vec3, z), "" } };
 	TwStructMember eulerMembers[] = {
-		{ "X", TW_TYPE_FLOAT, offsetof(vec3, x), "step=0.01" },
-		{ "Y", TW_TYPE_FLOAT, offsetof(vec3, y), "step=0.01" },
-		{ "Z", TW_TYPE_FLOAT, offsetof(vec3, z), "step=0.01" } };
+		{ "X", TW_TYPE_FLOAT, offsetof(vec3, x), "step=0.002" },
+		{ "Y", TW_TYPE_FLOAT, offsetof(vec3, y), "step=0.002" },
+		{ "Z", TW_TYPE_FLOAT, offsetof(vec3, z), "step=0.002" } };
 	TwType positionType = TwDefineStruct("Position", positionMembers, 3, sizeof(vec3), NULL, NULL);
 	TwType eulerType = TwDefineStruct("Euler", eulerMembers, 3, sizeof(vec3), NULL, NULL);
+	TwStructMember directionalLightMembers[] = {
+		{ "Active", TW_TYPE_BOOLCPP, offsetof(DirectionalLightParameter, active), ""},
+		{ "Position", positionType, offsetof(DirectionalLightParameter, position), ""},
+		{ "Rotation", eulerType, offsetof(DirectionalLightParameter, eulerRotation), ""},
+		{ "Ambient Color", TW_TYPE_COLOR3F, offsetof(DirectionalLightParameter, ambient), ""},
+		{ "Diffuse Color", TW_TYPE_COLOR3F, offsetof(DirectionalLightParameter, diffuse), ""},
+		{ "Specular Color", TW_TYPE_COLOR3F, offsetof(DirectionalLightParameter, specular), ""}
+	};
+	
+	TwStructMember spotLightMembers[] = {
+		{ "Active", TW_TYPE_BOOLCPP, offsetof(SpotLightParameter, active), "" },
+		{ "Position", positionType, offsetof(SpotLightParameter, position), "" },
+		{ "Rotation", eulerType, offsetof(SpotLightParameter, eulerRotation), "" },
+		{ "Ambient Color", TW_TYPE_COLOR3F, offsetof(SpotLightParameter, ambient), "" },
+		{ "Diffuse Color", TW_TYPE_COLOR3F, offsetof(SpotLightParameter, diffuse), "" },
+		{ "Specular Color", TW_TYPE_COLOR3F, offsetof(SpotLightParameter, specular), "" },
+		{ "Cutoff", TW_TYPE_FLOAT, offsetof(SpotLightParameter, cutOff), "step=0.001"},
+		{ "Out Cutoff", TW_TYPE_FLOAT, offsetof(SpotLightParameter, outerCutOff), "step=0.001"},
+		{ "Constant", TW_TYPE_FLOAT, offsetof(SpotLightParameter, constant), "step=0.001"},
+		{ "Linear", TW_TYPE_FLOAT, offsetof(SpotLightParameter, linear), "step=0.001" },
+		{ "quadratic", TW_TYPE_FLOAT, offsetof(SpotLightParameter, quadratic), "step=0.001" }
+	};
+
+	TwType directionalLightType = TwDefineStruct("Directional Light", directionalLightMembers, 5, sizeof(DirectionalLightParameter), NULL, NULL);
+	TwType spotLightType = TwDefineStruct("Spot Light", spotLightMembers, 11, sizeof(SpotLightParameter), NULL, NULL);
 
 	DirectionalLight* directinalLight = Resource::instance()->findDirectionalLight("directionalLight1");
 	if (directinalLight != NULL) {
-		TwAddVarRW(bar, "DirectionalLight1_Pos", positionType, &directinalLight->getLocalTransform()->position, "Group='DirectionalLight_1' Label='Position'");
-		TwAddVarRW(bar, "DirectionalLight1_Rot", eulerType, &directionalLight1Euler, "Group='DirectionalLight_1' Label='Rotate'");
+		TwAddVarRW(bar, "DirectionalLight1", directionalLightType, directinalLight->getLightParameter(), "");
 	}
 	directinalLight = Resource::instance()->findDirectionalLight("directionalLight2");
 	if (directinalLight != NULL) {
-		TwAddVarRW(bar, "DirectionalLight2_Pos", positionType, &directinalLight->getLocalTransform()->position, "Group='DirectionalLight_2' Label='Position'");
-		TwAddVarRW(bar, "DirectionalLight2_Rot", eulerType, &directionalLight2Euler, "Group='DirectionalLight_2' Label='Rotate'");
+		TwAddVarRW(bar, "DirectionalLight2", directionalLightType, directinalLight->getLightParameter(), "");
 	}
 
-	TwAddVarRW(bar, "SpotLight1_Pos", positionType, &spotLightBall.getLocalTransform()->position, "Group='SpotLightBall_1' Label='Position'");
-	TwAddVarRW(bar, "SpotLight1_Rot", eulerType, &eulerVector, "Group='SpotLightBall_1' Label='Rotate'");
+	TwAddVarRW(bar, "SpotLightBall_1_Pos", positionType, &spotLightBall.getLocalTransform()->position, "Group='SpotLightBall_1' Label='Position'");
+	TwAddVarRW(bar, "SpotLightBall_1_Rot", eulerType, &eulerVector, "Group='SpotLightBall_1' Label='Rotate'");
+	TwAddVarRW(bar, "SpotLight_1", spotLightType, Resource::instance()->findSpotLight("ball_1_spotLight1")->getLightParameter(), "Group='SpotLightBall_1' Label='SpotLight1'");
+	TwAddVarRW(bar, "SpotLight_2", spotLightType, Resource::instance()->findSpotLight("ball_1_spotLight2")->getLightParameter(), "Group='SpotLightBall_1' Label='SpotLight2'");
+	TwAddVarRW(bar, "SpotLight_3", spotLightType, Resource::instance()->findSpotLight("ball_1_spotLight3")->getLightParameter(), "Group='SpotLightBall_1' Label='SpotLight3'");
+	TwAddVarRW(bar, "SpotLight_4", spotLightType, Resource::instance()->findSpotLight("ball_1_spotLight4")->getLightParameter(), "Group='SpotLightBall_1' Label='SpotLight4'");
+	TwAddVarRW(bar, "SpotLight_5", spotLightType, Resource::instance()->findSpotLight("ball_1_spotLight5")->getLightParameter(), "Group='SpotLightBall_1' Label='SpotLight5'");
+	TwAddVarRW(bar, "SpotLight_6", spotLightType, Resource::instance()->findSpotLight("ball_1_spotLight6")->getLightParameter(), "Group='SpotLightBall_1' Label='SpotLight6'");
+	TwAddVarRW(bar, "World Spot Light1", spotLightType, Resource::instance()->findSpotLight("worldSpotLight1")->getLightParameter(), "");
+	TwAddVarRW(bar, "World Spot Light2", spotLightType, Resource::instance()->findSpotLight("worldSpotLight2")->getLightParameter(), "");
+	TwAddVarRW(bar, "World Spot Light3", spotLightType, Resource::instance()->findSpotLight("worldSpotLight3")->getLightParameter(), "");
+	TwAddVarRW(bar, "World Spot Light4", spotLightType, Resource::instance()->findSpotLight("worldSpotLight4")->getLightParameter(), "");
 }
 
 void scene::initScene(oglt::IApp* app) {
@@ -322,27 +382,7 @@ void oglt::scene::updateScene(IApp * app)
 		}
 	}
 
-	if (app->key('4')) {
-		eulerVector.x += 10.0f * app->getDeltaTime();
-	}
-
-	if (app->key('5')) {
-		eulerVector.y += 10.0f * app->getDeltaTime();
-	}
-
-	if (app->key('6')) {
-		eulerVector.z += 10.0f * app->getDeltaTime();
-	}
-
 	spotLightBall.getLocalTransform()->rotation = quat(eulerVector);
-	DirectionalLight* directinalLight = Resource::instance()->findDirectionalLight("directionalLight1");
-	if (directinalLight != NULL) {
-		directinalLight->getLocalTransform()->rotation = quat(directionalLight1Euler);
-	}
-	directinalLight = Resource::instance()->findDirectionalLight("directionalLight2");
-	if (directinalLight != NULL) {
-		directinalLight->getLocalTransform()->rotation = quat(directionalLight2Euler);
-	}
 }
 
 void scene::renderScene(oglt::IApp* app) {

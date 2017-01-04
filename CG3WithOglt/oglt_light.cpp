@@ -5,6 +5,7 @@ using namespace oglt::scene;
 DirectionalLight::DirectionalLight() {
 	ZERO_MEM(&parameter);
 	parameter.direction = glm::vec3(0.0f, -1.0f, 0.0f);
+	parameter.active = true;
 }
 
 DirectionalLight::~DirectionalLight() {
@@ -41,14 +42,16 @@ DirectionalLightParameter* DirectionalLight::getLightParameter()
 
 void DirectionalLight::update()
 {
-	parameter.position = worldTransform.position;
 	parameter.direction = worldTransform.rotation * glm::vec3(0.0f, -1.0f, 0.0f);
+	localTransform.rotation = glm::quat(parameter.eulerRotation);
+	localTransform.position = parameter.position;
 }
 
 SpotLight::SpotLight()
 {
 	ZERO_MEM(&parameter);
-	parameter.direction = glm::vec3(0.0f, 1.0f, 0.0f);
+	parameter.direction = glm::vec3(0.0f, -1.0f, 0.0f);
+	parameter.active = true;
 }
 
 SpotLight::~SpotLight()
@@ -108,6 +111,7 @@ SpotLightParameter* SpotLight::getLightParameter()
 
 void SpotLight::update()
 {
-	parameter.position = worldTransform.position;
 	parameter.direction = worldTransform.rotation * glm::vec3(0.0f, -1.0f, 0.0f);
+	localTransform.rotation = glm::quat(parameter.eulerRotation);
+	localTransform.position = parameter.position;
 }
