@@ -56,6 +56,5 @@ void main()
 
 	vec4 totalColor= vec4(lightColor,1.0);
   	//vec4 vDirLightColor = GetDirectionalLightColor(sunLight, vNormalized);
-
     outputColor= vec4(lightColor, vTexColor.a);
 }

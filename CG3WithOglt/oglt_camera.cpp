@@ -213,3 +213,13 @@ glm::mat4* FlyingCamera::look()
 {
 	return &viewMatrix;
 }
+
+glm::vec3 * oglt::scene::FlyingCamera::getUp()
+{
+	return &vUp;
+}
+
+glm::vec3 * oglt::scene::FlyingCamera::getView()
+{
+	return &vView;
+}

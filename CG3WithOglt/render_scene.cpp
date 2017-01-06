@@ -19,11 +19,13 @@ using namespace oglt::scene;
 using namespace glm;
 
 #define SKYBOX_NUM 5
+#define OPEN_LIGHT_SOURCE_NUM 3
 
 FreeTypeFont ftFont;
 FlyingCamera camera;
-SceneObject worldTree, mikuObj, stageObj;
-FbxModel mikuModel, stageModel;
+SceneObject worldTree, mikuObj, iaxObj, stageObj;
+FbxModel mikuModel, iaxModel, stageModel;
+bool enableMiku = true, enableIax = false, enableStage = true;
 
 vec3 sunDir = vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0);
 
@@ -34,7 +36,9 @@ vector<oglt::uint> cubeMapTextureIds;
 
 int cameraUpdateMode = OGLT_UPDATEA_CAMERA_WALK | OGLT_UPDATE_CAMERA_ROTATE;
 
-AudioSource testSource;
+AudioSource tellYourWorldSource;
+AudioSource kiminoSource;
+AudioSource openLightSource[OPEN_LIGHT_SOURCE_NUM];
 
 UniformBufferObject uboMatrix;
 
@@ -93,14 +97,15 @@ void initShaders() {
 }
 
 SceneObject spotLightBall;
+vec3 eulerVector = vec3(0.0f);
 
 void initLights() {
 	DirectionalLight directionalLight;
 	directionalLight.setParam(LightParam::AMBIENT, vec3(0.023f, 0.023f, 0.023f));
 	directionalLight.setParam(LightParam::DIFFUSE, vec3(0.1f, 0.1f, 0.1f));
-	directionalLight.setParam(LightParam::SPECULAR, vec3(1.0f, 1.0f, 1.0f));
-	Resource::instance()->addDirectionalLight(directionalLight, "directionalLight1");
+	directionalLight.setParam(LightParam::SPECULAR, vec3(0.0f, 0.0f, 0.0f));
 	directionalLight.getLightParameter()->active = false;
+	Resource::instance()->addDirectionalLight(directionalLight, "directionalLight1");
 	Resource::instance()->addDirectionalLight(directionalLight, "directionalLight2");
 	worldTree.addChild(Resource::instance()->findDirectionalLight("directionalLight1"));
 	worldTree.addChild(Resource::instance()->findDirectionalLight("directionalLight2"));
@@ -136,21 +141,21 @@ void initLights() {
 	Resource::instance()->addSpotLight(spotLight, "ball_1_spotLight6");
 
 	spotLight.setParam(LightParam::DIFFUSE, vec3(0.8f, 0.8f, 0.8f));
-	spotLight.getLightParameter()->active = true;
-	spotLight.getLightParameter()->position = vec3(0.0f, 235.0f, 0.0f);
-	spotLight.getLightParameter()->eulerRotation = vec3(0.0f, 0.0f, 0.0f);
 	spotLight.setParam(LightParam::CUTOFF, 0.92f);
 	spotLight.setParam(LightParam::OUTER_CUTOFF, 0.91f);
 	spotLight.setParam(LightParam::SPECULAR, vec3(0.0f, 0.0f, 0.0f));
-	Resource::instance()->addSpotLight(spotLight, "worldSpotLight1");
 	spotLight.getLightParameter()->position = vec3(0.0f, 103.0f, 205.0f);
 	spotLight.getLightParameter()->eulerRotation = vec3(1.25f, 0.0f, 0.0f);
-	Resource::instance()->addSpotLight(spotLight, "worldSpotLight2");
+	Resource::instance()->addSpotLight(spotLight, "worldSpotLight1");
 	spotLight.getLightParameter()->position = vec3(208.0f, 235.0f, -11.0f);
 	spotLight.getLightParameter()->eulerRotation = vec3(0.0f, 0.0f, -0.912f);
-	Resource::instance()->addSpotLight(spotLight, "worldSpotLight3");
+	Resource::instance()->addSpotLight(spotLight, "worldSpotLight2");
 	spotLight.getLightParameter()->position = vec3(-216.0f, 235.0f, -11.0f);
 	spotLight.getLightParameter()->eulerRotation = vec3(0.0f, 0.0f, 0.982f);
+	Resource::instance()->addSpotLight(spotLight, "worldSpotLight3");
+	spotLight.getLightParameter()->position = vec3(0.0f, 81.0f, 107.0f);
+	spotLight.getLightParameter()->eulerRotation = vec3(1.21f, 0.0f, 0.0f);
+	spotLight.setParam(LightParam::DIFFUSE, vec3(0.39f, 0.39f, 0.39f));
 	Resource::instance()->addSpotLight(spotLight, "worldSpotLight4");
 	Resource::instance()->setUpLights();
 
@@ -161,15 +166,13 @@ void initLights() {
 	spotLightBall.addChild(Resource::instance()->findSpotLight("ball_1_spotLight5"));
 	spotLightBall.addChild(Resource::instance()->findSpotLight("ball_1_spotLight6"));
 	spotLightBall.getLocalTransform()->position = vec3(0.0f, 70.0f, 0.0f);
-	worldTree.addChild(&spotLightBall);
+	stageObj.addChild(&spotLightBall);
 
-	worldTree.addChild(Resource::instance()->findSpotLight("worldSpotLight1"));
-	worldTree.addChild(Resource::instance()->findSpotLight("worldSpotLight2"));
-	worldTree.addChild(Resource::instance()->findSpotLight("worldSpotLight3"));
-	worldTree.addChild(Resource::instance()->findSpotLight("worldSpotLight4"));
+	stageObj.addChild(Resource::instance()->findSpotLight("worldSpotLight1"));
+	stageObj.addChild(Resource::instance()->findSpotLight("worldSpotLight2"));
+	stageObj.addChild(Resource::instance()->findSpotLight("worldSpotLight3"));
+	stageObj.addChild(Resource::instance()->findSpotLight("worldSpotLight4"));
 }
-
-vec3 eulerVector = vec3(0.0f);
 
 void initTwBar() {
 	bar = TwNewBar("TweakBar");
@@ -183,8 +186,13 @@ void initTwBar() {
 		{ "X", TW_TYPE_FLOAT, offsetof(vec3, x), "step=0.002" },
 		{ "Y", TW_TYPE_FLOAT, offsetof(vec3, y), "step=0.002" },
 		{ "Z", TW_TYPE_FLOAT, offsetof(vec3, z), "step=0.002" } };
+	TwStructMember scaleMembers[] = {
+		{ "X", TW_TYPE_FLOAT, offsetof(vec3, x), "step=0.01" },
+		{ "Y", TW_TYPE_FLOAT, offsetof(vec3, y), "step=0.01" },
+		{ "Z", TW_TYPE_FLOAT, offsetof(vec3, z), "step=0.01" } };
 	TwType positionType = TwDefineStruct("Position", positionMembers, 3, sizeof(vec3), NULL, NULL);
 	TwType eulerType = TwDefineStruct("Euler", eulerMembers, 3, sizeof(vec3), NULL, NULL);
+	TwType scaleType = TwDefineStruct("Scale", scaleMembers, 3, sizeof(vec3), NULL, NULL);
 	TwStructMember directionalLightMembers[] = {
 		{ "Active", TW_TYPE_BOOLCPP, offsetof(DirectionalLightParameter, active), ""},
 		{ "Position", positionType, offsetof(DirectionalLightParameter, position), ""},
@@ -208,8 +216,15 @@ void initTwBar() {
 		{ "quadratic", TW_TYPE_FLOAT, offsetof(SpotLightParameter, quadratic), "step=0.001" }
 	};
 
+	TwStructMember transformMembers[] = {
+		{ "Position", positionType, offsetof(Transform, position), "" },
+		{ "Rotation", TW_TYPE_QUAT4F, offsetof(Transform, rotation), "" },
+		{ "Scale", scaleType, offsetof(Transform, scale), ""}
+	};
+
 	TwType directionalLightType = TwDefineStruct("Directional Light", directionalLightMembers, 5, sizeof(DirectionalLightParameter), NULL, NULL);
 	TwType spotLightType = TwDefineStruct("Spot Light", spotLightMembers, 11, sizeof(SpotLightParameter), NULL, NULL);
+	TwType transformType = TwDefineStruct("Transform", transformMembers, 3, sizeof(Transform), NULL, NULL);
 
 	DirectionalLight* directinalLight = Resource::instance()->findDirectionalLight("directionalLight1");
 	if (directinalLight != NULL) {
@@ -220,6 +235,12 @@ void initTwBar() {
 		TwAddVarRW(bar, "DirectionalLight2", directionalLightType, directinalLight->getLightParameter(), "");
 	}
 
+	TwAddVarRW(bar, "Miku Active", TW_TYPE_BOOLCPP, &enableMiku, "Group='Miku', Label='Active'");
+	TwAddVarRW(bar, "Miku Transform", transformType, mikuObj.getLocalTransform(), "Group='Miku', Label='Transform'");
+	TwAddVarRW(bar, "IAx Active", TW_TYPE_BOOLCPP, &enableIax, "Group='IAx', Label='Active'");
+	TwAddVarRW(bar, "IAx Transform", transformType, iaxObj.getLocalTransform(), "Group='IAx', Label='Transform'");
+	TwAddVarRW(bar, "Stage Active", TW_TYPE_BOOLCPP, &enableStage, "Group='Stage', Label='Active'");
+	TwAddVarRW(bar, "Stage Transform", transformType, stageObj.getLocalTransform(), "Group='Stage', Label='Transform'");
 	TwAddVarRW(bar, "SpotLightBall_1_Pos", positionType, &spotLightBall.getLocalTransform()->position, "Group='SpotLightBall_1' Label='Position'");
 	TwAddVarRW(bar, "SpotLightBall_1_Rot", eulerType, &eulerVector, "Group='SpotLightBall_1' Label='Rotate'");
 	TwAddVarRW(bar, "SpotLight_1", spotLightType, Resource::instance()->findSpotLight("ball_1_spotLight1")->getLightParameter(), "Group='SpotLightBall_1' Label='SpotLight1'");
@@ -234,14 +255,7 @@ void initTwBar() {
 	TwAddVarRW(bar, "World Spot Light4", spotLightType, Resource::instance()->findSpotLight("worldSpotLight4")->getLightParameter(), "");
 }
 
-void scene::initScene(oglt::IApp* app) {
-	glClearColor(0.1f, 0.3f, 0.7f, 1.0f);
-
-	initShaders();
-
-	ftFont.loadFont("data/fonts/SugarpunchDEMO.otf", 32);
-	ftFont.setShaderProgram(Resource::instance()->findShaderProgram("font"));
-
+void initSkyboxes() {
 	string skyboxPaths[SKYBOX_NUM * 7] = { "data/skyboxes/elbrus/" , "elbrus_front.jpg" , "elbrus_back.jpg" , "elbrus_right.jpg",
 		"elbrus_left.jpg" , "elbrus_top.jpg", "elbrus_top.jpg" ,
 		"data/skyboxes/jajlands1/", "jajlands1_ft.jpg", "jajlands1_bk.jpg", "jajlands1_lf.jpg",
@@ -258,26 +272,28 @@ void scene::initScene(oglt::IApp* app) {
 		skybox.load(skyboxPaths[i * 7], skyboxPaths[i * 7 + 1], skyboxPaths[i * 7 + 2], skyboxPaths[i * 7 + 3], skyboxPaths[i * 7 + 4], skyboxPaths[i * 7 + 5], skyboxPaths[i * 7 + 6]);
 		skybox.setShaderProgram(Resource::instance()->findShaderProgram("main"));
 		skybox.getLocalTransform()->scale = vec3(10.0f, 10.0f, 10.0f);
-		uint skyboxId = Resource::instance()->addSkybox(skybox);
+		oglt::uint skyboxId = Resource::instance()->addSkybox(skybox);
 		skyboxIds.push_back(skyboxId);
 
 		Texture cubeMapTexture;
 		cubeMapTexture.loadTexture(skyboxPaths[i * 7] + skyboxPaths[i * 7 + 1], skyboxPaths[i * 7] + skyboxPaths[i * 7 + 2],
 			skyboxPaths[i * 7] + skyboxPaths[i * 7 + 4], skyboxPaths[i * 7] + skyboxPaths[i * 7 + 3], skyboxPaths[i * 7] + skyboxPaths[i * 7 + 5], skyboxPaths[i * 7] + skyboxPaths[i * 7 + 6]);
-		uint cubeMapId = Resource::instance()->addTexture(cubeMapTexture);
+		oglt::uint cubeMapId = Resource::instance()->addTexture(cubeMapTexture);
 		cubeMapTextureIds.push_back(cubeMapId);
 	}
 
 	skyboxIndex = skyboxIds.size() - 1;
+}
 
-	camera = FlyingCamera(app, vec3(15.0f, 158.0f, 469.0f), vec3(0.0f, 170.0f, 500.0f), vec3(0.0f, 1.0f, 0.0f), 100.0f, 0.01f);
+void initSceneObjects(IApp* app) {
+	camera = FlyingCamera(app, vec3(-6.75f, 137.9f, 315.29f), vec3(52.05f, -2.66f, -141.48f), vec3(0.0f, 1.0f, 0.0f), 100.0f, 0.01f);
 	camera.setMovingKeys('w', 's', 'a', 'd');
 	camera.addChild(Resource::instance()->getSkybox(skyboxIndex));
 
 	FbxModel::initialize();
-	
+
 	worldTree.addChild(&camera);
-	
+
 	stageModel.load("data/models/Rurusyu/scenes/rurusyu.fbx");
 	stageObj.addRenderObj(&stageModel);
 	stageObj.setShaderProgram(Resource::instance()->findShaderProgram("reflect"));
@@ -285,9 +301,16 @@ void scene::initScene(oglt::IApp* app) {
 
 	mikuModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
 	mikuObj.addRenderObj(&mikuModel);
-	mikuObj.setShaderProgram(Resource::instance()->findShaderProgram("handedSkin"));
+	mikuObj.setShaderProgram(Resource::instance()->findShaderProgram("lightingSkin"));
 	mikuObj.getLocalTransform()->scale = vec3(0.75f, 0.75f, 0.75f);
-	worldTree.addChild(&mikuObj);
+	stageObj.addChild(&mikuObj);
+
+	iaxModel.load("data/models/IAxMaya2/scenes/IAx.fbx");
+	iaxObj.addRenderObj(&iaxModel);
+	iaxObj.setShaderProgram(Resource::instance()->findShaderProgram("lightingSkin"));
+	iaxObj.getLocalTransform()->scale = vec3(0.75f, 0.75f, 0.75f);
+	iaxObj.setVisiable(false);
+	stageObj.addChild(&iaxObj);
 
 	IRenderable::mutexViewMatrix = camera.look();
 	IRenderable::mutexProjMatrix = app->getProj();
@@ -296,59 +319,60 @@ void scene::initScene(oglt::IApp* app) {
 	IRenderable::mutexCameraPos = &camera.getWorldTransform()->position;
 
 	// the skybox index is same as cube map texture index
-	bindModelTextureId(stageModel, CUBE_MAP, cubeMapTextureIds[skyboxIndex]);
-	bindModelTextureId(mikuModel, CUBE_MAP, cubeMapTextureIds[skyboxIndex]);
+	bindModelTextureId(stageModel, MaterialParam::CUBE_MAP, cubeMapTextureIds[skyboxIndex]);
+	bindModelTextureId(mikuModel, MaterialParam::CUBE_MAP, cubeMapTextureIds[skyboxIndex]);
 
 	Texture furTexture;
 	furTexture.loadTexture2D("data/textures/furFill.png");
-	uint furTextureId = Resource::instance()->addTexture(furTexture);
-	bindModelTextureId(mikuModel, FUR_TEXTURE, furTextureId);
+	oglt::uint furTextureId = Resource::instance()->addTexture(furTexture);
+	bindModelTextureId(mikuModel, MaterialParam::FUR_TEXTURE, furTextureId);
+}
 
-	glEnable(GL_DEPTH_TEST);
-	glClearDepth(1.0);
+void initAudioSource() {
+	tellYourWorldSource.load("data/musics/Tell Your World Dance.wav");
+	kiminoSource.load("data/musics/kimino.wav");
+	for (int i = 0; i < OPEN_LIGHT_SOURCE_NUM; i++) {
+		openLightSource[i].load("data/musics/meka_ge_shoumei_swi01.wav");
+	}
+}
 
-	testSource.load("data/musics/Tell Your World Dance.wav");
+void scene::initScene(oglt::IApp* app) {
+	glClearColor(0.1f, 0.3f, 0.7f, 1.0f);
+
+	initShaders();
+
+	ftFont.loadFont("data/fonts/SugarpunchDEMO.otf", 32);
+	ftFont.setShaderProgram(Resource::instance()->findShaderProgram("font"));
+
+	initSkyboxes();
+
+	initSceneObjects(app);
 
 	initLights();
+
+	initTwBar();
+	
+	initAudioSource();
+
 	uboMatrix.createUniformBuffer();
 	uboMatrix.addData(IRenderable::mutexProjMatrix, sizeof(glm::mat4));
 	uboMatrix.addData(IRenderable::mutexViewMatrix, sizeof(glm::mat4));
 	uboMatrix.uploadBufferData(0, GL_DYNAMIC_DRAW);
 	uboMatrix.updateBuffer();
 
-	initTwBar();
+	glEnable(GL_DEPTH_TEST);
+	glClearDepth(1.0);
 }
 
 float animTimer = 0.0f;
+float lightingTimer = 0.0f;
 bool playAnimation = false;
+bool playLightSource = false;
+bool hasOpenLight = false;
+bool showInformation = false;
 int switchShaderProgram = 0;
 
-void oglt::scene::updateScene(IApp * app)
-{
-	worldTree.calcNodeHeirarchyTransform();
-
-	// just for testing
-	if (app->oneKey('r') || app->oneKey('R')) {
-		if (cameraUpdateMode & OGLT_UPDATE_CAMERA_ROTATE) {
-			cameraUpdateMode ^= OGLT_UPDATE_CAMERA_ROTATE;
-			app->setCursor(OGLT_CURSOR_ARROW);
-		}
-		else {
-			cameraUpdateMode |= OGLT_UPDATE_CAMERA_ROTATE;
-			app->setCursor(OGLT_CURSOR_NONE);
-		}
-	}
-
-	if (app->oneKey('t') || app->oneKey('T')) {
-		mikuModel.setTimer(-0.4f);
-		testSource.rewind();
-		testSource.play();
-	}
-
-	if (app->oneKey('y') || app->oneKey('Y')) {
-		playAnimation = !playAnimation;
-	}
-
+void updateSwitchShader(IApp* app) {
 	if (app->oneKey('e') || app->oneKey('E')) {
 		switchShaderProgram++;
 		if (switchShaderProgram >= 4) {
@@ -373,16 +397,129 @@ void oglt::scene::updateScene(IApp * app)
 			mikuModel.setShaderProgram(program);
 		}
 	}
+}
+
+void updateAnim(IApp* app) {
+	if (app->oneKey('t') || app->oneKey('T')) {
+		lightingTimer = 0.0f;
+		mikuModel.setTimer(-0.4f);
+		tellYourWorldSource.rewind();
+		tellYourWorldSource.play();
+		//kiminoSource.rewind();
+		//kiminoSource.play();
+		playLightSource = true;
+		hasOpenLight = false;
+		Resource::instance()->findSpotLight("worldSpotLight1")->getLightParameter()->active = false;
+		Resource::instance()->findSpotLight("worldSpotLight2")->getLightParameter()->active = false;
+		Resource::instance()->findSpotLight("worldSpotLight3")->getLightParameter()->active = false;
+		Resource::instance()->findSpotLight("worldSpotLight4")->getLightParameter()->active = false;
+		Resource::instance()->findDirectionalLight("directionalLight1")->getLightParameter()->active = false;
+	}
+
+	if (app->oneKey('y') || app->oneKey('Y')) {
+		playAnimation = !playAnimation;
+	}
 
 	if (playAnimation) {
 		animTimer += app->getDeltaTime();
+		lightingTimer += app->getDeltaTime();
 		if (animTimer >= 0.04f) {
 			mikuModel.updateAnimation(animTimer);
 			animTimer = 0.0f;
 		}
+		if (playLightSource) {
+			if (lightingTimer > 0.4f) {
+				openLightSource[0].play();
+			}
+			if (lightingTimer > 0.9f) {
+				openLightSource[1].play();
+			}
+			if (lightingTimer > 1.4f) {
+				openLightSource[2].play();
+				playLightSource = false;
+			}
+		}
+
+
+		if (!hasOpenLight) {
+			if (lightingTimer > 0.5f) {
+				Resource::instance()->findSpotLight("worldSpotLight1")->getLightParameter()->active = true;
+				Resource::instance()->findSpotLight("worldSpotLight4")->getLightParameter()->active = true;
+			}
+
+			if (lightingTimer > 1.0f) {
+				Resource::instance()->findSpotLight("worldSpotLight2")->getLightParameter()->active = true;
+			}
+
+			if (lightingTimer > 1.5f) {
+				Resource::instance()->findSpotLight("worldSpotLight3")->getLightParameter()->active = true;
+			}
+
+			if (lightingTimer > 1.7f) {
+				Resource::instance()->findDirectionalLight("directionalLight1")->getLightParameter()->active = true;
+				hasOpenLight = true;
+			}
+		}
 	}
+}
+
+void updateCameraMode(IApp* app) {
+	if (app->oneKey('r') || app->oneKey('R')) {
+		if (cameraUpdateMode & OGLT_UPDATE_CAMERA_ROTATE) {
+			cameraUpdateMode ^= OGLT_UPDATE_CAMERA_ROTATE;
+			app->setCursor(OGLT_CURSOR_ARROW);
+		}
+		else {
+			cameraUpdateMode |= OGLT_UPDATE_CAMERA_ROTATE;
+			app->setCursor(OGLT_CURSOR_NONE);
+		}
+	}
+}
+
+void oglt::scene::updateScene(IApp * app)
+{
+	worldTree.calcNodeHeirarchyTransform();
+
+	updateCameraMode(app);
+	updateSwitchShader(app);
+	updateAnim(app);
 
 	spotLightBall.getLocalTransform()->rotation = quat(eulerVector);
+	stageObj.setVisiable(enableStage);
+	mikuObj.setVisiable(enableMiku);
+	iaxObj.setVisiable(enableIax);
+
+	if (app->oneKey('o')) {
+		showInformation = !showInformation;
+	}
+}
+
+void renderFont(IApp* app) {
+	if (showInformation) {
+		ShaderProgram* spFont = Resource::instance()->findShaderProgram("font");
+
+		if (spFont != NULL) {
+			spFont->useProgram();
+			spFont->setUniform("matrices.projMatrix", app->getOrth());
+			spFont->setUniform("vColor", vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		}
+
+		glDisable(GL_DEPTH_TEST);
+		oglt::uint w, h;
+		app->getViewport(w, h);
+		ftFont.printFormatted(20, h - 35, 24, "UPS: %d", app->getUps());
+		ftFont.printFormatted(20, h - 70, 24, "FPS: %d", app->getFps());
+		ftFont.printFormatted(20, h - 100, 20, "PX: %.2f", camera.getWorldTransform()->position.x);
+		ftFont.printFormatted(20, h - 123, 20, "PY: %.2f", camera.getWorldTransform()->position.y);
+		ftFont.printFormatted(20, h - 146, 20, "PZ: %.2f", camera.getWorldTransform()->position.z);
+
+		ftFont.printFormatted(20, h - 169, 20, "VX: %.2f", camera.getView()->x);
+		ftFont.printFormatted(20, h - 192, 20, "VY: %.2f", camera.getView()->y);
+		ftFont.printFormatted(20, h - 215, 20, "VZ: %.2f", camera.getView()->z);
+		ftFont.print("OgltApp : https://github.com/Lei-k/oglt_app", 10, 15, 20);
+		ftFont.render();
+		glEnable(GL_DEPTH_TEST);
+	}
 }
 
 void scene::renderScene(oglt::IApp* app) {
@@ -400,25 +537,7 @@ void scene::renderScene(oglt::IApp* app) {
 
 	worldTree.render(OGLT_RENDER_CHILDREN);
 
-	ShaderProgram* spFont = Resource::instance()->findShaderProgram("font");
-	if (spFont != NULL) {
-		spFont->useProgram();
-		spFont->setUniform("matrices.projMatrix", app->getOrth());
-		spFont->setUniform("vColor", vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	}
-	glDisable(GL_DEPTH_TEST);
-
-	uint w, h;
-	app->getViewport(w, h);
-	ftFont.printFormatted(20, h - 35, 24, "UPS: %d", app->getUps());
-	ftFont.printFormatted(20, h - 70, 24, "FPS: %d", app->getFps());
-	ftFont.printFormatted(20, h - 100, 20, "X: %.2f", camera.getWorldTransform()->position.x);
-	ftFont.printFormatted(20, h - 123, 20, "Y: %.2f", camera.getWorldTransform()->position.y);
-	ftFont.printFormatted(20, h - 146, 20, "Z: %.2f", camera.getWorldTransform()->position.z);
-	ftFont.print("OgltApp : https://github.com/Lei-k/oglt_app", 10, 15, 20);
-	ftFont.render();
-
-	glEnable(GL_DEPTH_TEST);
+	renderFont(app);
 
 	// I put change skybox code in render scene
 	// because render scene and update scene are
@@ -428,7 +547,7 @@ void scene::renderScene(oglt::IApp* app) {
 	// render scene render some thing in world tree
 	// and this operation is not weighted, so it's ok to put it
 	// in render scene
-	if (app->oneKey('1')) {
+	if (app->oneKey('p')) {
 		camera.removeChild(Resource::instance()->getSkybox(skyboxIds[skyboxIndex]));
 		if (skyboxIndex < skyboxIds.size() - 1) {
 			skyboxIndex++;

@@ -34,8 +34,6 @@ void main()
   vColor = inColor;
   vTexCoord = inCoord;
 
-  int index1 = int(boneIndices[0]);
-  int index2 = int(boneIndices[1]);
   mat4 boneTransform = gBones[boneIndices[0]] * boneWeights[0]
   + gBones[boneIndices[1]] * boneWeights[1]
   + gBones[boneIndices[2]] * boneWeights[2]
@@ -44,6 +42,6 @@ void main()
   vEyeSpacePos = mMV * boneTransform * vec4(inPosition, 1.0);
   gl_Position = mMVP * boneTransform * vec4(inPosition, 1.0);
 
-  vNormal = (matrices.normalMatrix * vec4(inNormal, 1.0)).xyz;
-  vWorldPos = (matrices.modelMatrix * vec4(inPosition, 1.0)).xyz;
+  vNormal = (matrices.normalMatrix * transpose(inverse(boneTransform)) * vec4(inNormal, 1.0)).xyz;
+  vWorldPos = (matrices.modelMatrix * boneTransform * vec4(inPosition, 1.0)).xyz;
 }

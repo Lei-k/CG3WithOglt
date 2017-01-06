@@ -21,3 +21,7 @@ string getDirectoryPath(string sFilePath)
 	}
 	return sDirectory;
 }
+
+float getRadian(float degree) {
+	return (degree / 180.0f) * M_PI;
+}

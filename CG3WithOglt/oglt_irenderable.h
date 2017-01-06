@@ -8,6 +8,9 @@ namespace oglt {
 	class IRenderable : public IShaderable {
 	public:
 		virtual void render(int renderType = OGLT_RENDER_SELF) {}
+		void setVisiable(bool _visiable) {
+			visiable = _visiable;
+		}
 
 		static uint mutexShaderProgramId;
 		static glm::mat4* mutexModelMatrix;

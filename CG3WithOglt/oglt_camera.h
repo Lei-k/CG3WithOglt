@@ -14,6 +14,8 @@ namespace oglt {
 								// Main functions
 			void update(int updateMode = OGLT_UPDATEA_CAMERA_WALK | OGLT_UPDATE_CAMERA_ROTATE);
 			glm::mat4* look();
+			glm::vec3* getUp();
+			glm::vec3* getView();
 
 			void setMovingKeys(int a_iForw, int a_iBack, int a_iLeft, int a_iRight);
 			void resetMouse();

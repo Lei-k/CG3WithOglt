@@ -145,6 +145,7 @@
     <ClInclude Include="oglt_shader.h" />
     <ClInclude Include="oglt_skeleton_material.h" />
     <ClInclude Include="oglt_skybox.h" />
+    <ClInclude Include="oglt_spot_light_ball.h" />
     <ClInclude Include="oglt_texture.h" />
     <ClInclude Include="oglt_ubo.h" />
     <ClInclude Include="oglt_util.h" />
@@ -171,6 +172,7 @@
     <ClCompile Include="oglt_shader.cpp" />
     <ClCompile Include="oglt_skeleton_material.cpp" />
     <ClCompile Include="oglt_skybox.cpp" />
+    <ClCompile Include="oglt_spot_light_ball.cpp" />
     <ClCompile Include="oglt_texture.cpp" />
     <ClCompile Include="oglt_ubo.cpp" />
     <ClCompile Include="oglt_vbo.cpp" />

@@ -104,5 +104,8 @@ namespace oglt {
 
 		bool hasAnimation;
 		string sPath;
+
+		map<string, uint> animStackMap;
+		map<string, uint> animLayerMap;
 	};
 }

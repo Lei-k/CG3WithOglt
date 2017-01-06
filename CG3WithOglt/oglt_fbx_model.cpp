@@ -184,6 +184,16 @@ bool FbxModel::loadFromScene(FbxScene * scene)
 	boneWeights.createVBO();
 
 	hasAnimation = scene->GetSrcObjectCount<FbxAnimStack>() == 0 ? false : true;
+	FOR(i, scene->GetSrcObjectCount<FbxAnimStack>()) {
+		FbxAnimStack* animStack = scene->GetSrcObject<FbxAnimStack>(i);
+		string stackName = animStack->GetName();
+		animStackMap[stackName] = i;
+		FOR(j, scene->GetSrcObjectCount<FbxAnimLayer>()) {
+			FbxAnimLayer* animLayer = scene->GetSrcObject<FbxAnimLayer>(j);
+			string layerName = animLayer->GetName();
+			animLayerMap[layerName] = j;
+		}
+	}
 
 	cout << "Processing file " + sPath << endl;
 	cout << "Please wait!" << endl;
@@ -833,7 +843,7 @@ glm::vec3 oglt::FbxModel::toGlmVec3(FbxVector4 & fbxVec4)
 
 void FbxModel::render(int renderType)
 {
-	if (!loaded)
+	if (!loaded || !visiable)
 		return;
 
 	if (hasAnimation) {

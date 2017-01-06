@@ -29,11 +29,13 @@ void SceneObject::render(int renderType)
 {
 	mutexModelMatrix = &modelMatrix;
 
-	FOR (i, renderObjs.size()) {
-		if (renderObjs[i]->getShaderProgram() == NULL) {
-			renderObjs[i]->setShaderProgram(shaderProgram);
+	if (visiable) {
+		FOR(i, renderObjs.size()) {
+			if (renderObjs[i]->getShaderProgram() == NULL) {
+				renderObjs[i]->setShaderProgram(shaderProgram);
+			}
+			renderObjs[i]->render();
 		}
-		renderObjs[i]->render();
 	}
 
 	if (renderType & OGLT_RENDER_CHILDREN) {

@@ -1,5 +1,6 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
 
 #include <Windows.h>
 #include <stdlib.h>
@@ -28,3 +29,4 @@
 using namespace std;
 
 string getDirectoryPath(string sFilePath);
+float getRadian(float degree);
