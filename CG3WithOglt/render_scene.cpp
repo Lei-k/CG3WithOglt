@@ -23,9 +23,9 @@ using namespace glm;
 
 FreeTypeFont ftFont;
 FlyingCamera camera;
-SceneObject worldTree, mikuObj, iaxObj, stageObj;
-FbxModel mikuModel, iaxModel, stageModel;
-bool enableMiku = true, enableIax = false, enableStage = true;
+SceneObject worldTree, mikuObj, remObj, ramObj, iaxObj, stageObj;
+FbxModel mikuModel, iaxModel, remModel, ramModel, stageModel;
+bool enableMiku = true, enableIax = false, enableStage = true, enableRem = false, enableRam = false;
 
 vec3 sunDir = vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0);
 
@@ -38,6 +38,7 @@ int cameraUpdateMode = OGLT_UPDATEA_CAMERA_WALK | OGLT_UPDATE_CAMERA_ROTATE;
 
 AudioSource tellYourWorldSource;
 AudioSource kiminoSource;
+AudioSource gokurakuSource;
 AudioSource openLightSource[OPEN_LIGHT_SOURCE_NUM];
 
 UniformBufferObject uboMatrix;
@@ -86,6 +87,8 @@ void initShaders() {
 	Resource::instance()->addShader("fgFurSkin", "data/shaders/fur_skinning_shader.frag", GL_FRAGMENT_SHADER);
 	Resource::instance()->addShader("fgLights", "data/shaders/Lights.frag", GL_FRAGMENT_SHADER);
 	Resource::instance()->addShader("fgLighting", "data/shaders/lighting.frag", GL_FRAGMENT_SHADER);
+	Resource::instance()->addShader("fgSharper", "data/shaders/sharper.frag", GL_FRAGMENT_SHADER);
+	Resource::instance()->addShader("fgGaussionBlur", "data/shaders/gaussion_blur.frag", GL_FRAGMENT_SHADER);
 
 	Resource::instance()->addShaderProgram("font", 2, "ortho", "fgFont");
 	Resource::instance()->addShaderProgram("main", 3, "vtMain", "fgDirLight", "fgMain");
@@ -94,6 +97,8 @@ void initShaders() {
 	Resource::instance()->addShaderProgram("handedSkin", 3, "vtSkin", "fgDirLight", "fgHandPaint");
 	Resource::instance()->addShaderProgram("furSkin", 3, "vtFurSkin", "geFurSkin", "fgFurSkin");
 	Resource::instance()->addShaderProgram("lightingSkin", 3, "vtSkin", "fgLights", "fgLighting");
+	Resource::instance()->addShaderProgram("skinSharper", 2, "vtSkin", "fgSharper");
+	Resource::instance()->addShaderProgram("skinGaussionBlur", 2, "vtSkin", "fgGaussionBlur");
 }
 
 SceneObject spotLightBall;
@@ -239,6 +244,10 @@ void initTwBar() {
 	TwAddVarRW(bar, "Miku Transform", transformType, mikuObj.getLocalTransform(), "Group='Miku', Label='Transform'");
 	TwAddVarRW(bar, "IAx Active", TW_TYPE_BOOLCPP, &enableIax, "Group='IAx', Label='Active'");
 	TwAddVarRW(bar, "IAx Transform", transformType, iaxObj.getLocalTransform(), "Group='IAx', Label='Transform'");
+	TwAddVarRW(bar, "Rem Active", TW_TYPE_BOOLCPP, &enableRem, "Group='Rem', Label='Active'");
+	TwAddVarRW(bar, "Rem Transform", transformType, remObj.getLocalTransform(), "Group='Rem', Label='Transform'");
+	TwAddVarRW(bar, "Ram Active", TW_TYPE_BOOLCPP, &enableRam, "Group='Ram', Label='Active'");
+	TwAddVarRW(bar, "Ram Transform", transformType, ramObj.getLocalTransform(), "Group='Ram', Label='Transform'");
 	TwAddVarRW(bar, "Stage Active", TW_TYPE_BOOLCPP, &enableStage, "Group='Stage', Label='Active'");
 	TwAddVarRW(bar, "Stage Transform", transformType, stageObj.getLocalTransform(), "Group='Stage', Label='Transform'");
 	TwAddVarRW(bar, "SpotLightBall_1_Pos", positionType, &spotLightBall.getLocalTransform()->position, "Group='SpotLightBall_1' Label='Position'");
@@ -296,7 +305,7 @@ void initSceneObjects(IApp* app) {
 
 	stageModel.load("data/models/Rurusyu/scenes/rurusyu.fbx");
 	stageObj.addRenderObj(&stageModel);
-	stageObj.setShaderProgram(Resource::instance()->findShaderProgram("reflect"));
+	stageObj.setShaderProgram(Resource::instance()->findShaderProgram("lightingSkin"));
 	worldTree.addChild(&stageObj);
 
 	mikuModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
@@ -309,7 +318,6 @@ void initSceneObjects(IApp* app) {
 	iaxObj.addRenderObj(&iaxModel);
 	iaxObj.setShaderProgram(Resource::instance()->findShaderProgram("lightingSkin"));
 	iaxObj.getLocalTransform()->scale = vec3(0.75f, 0.75f, 0.75f);
-	iaxObj.setVisiable(false);
 	stageObj.addChild(&iaxObj);
 
 	IRenderable::mutexViewMatrix = camera.look();
@@ -331,6 +339,7 @@ void initSceneObjects(IApp* app) {
 void initAudioSource() {
 	tellYourWorldSource.load("data/musics/Tell Your World Dance.wav");
 	kiminoSource.load("data/musics/kimino.wav");
+	gokurakuSource.load("data/musics/gokuraku.wav");
 	for (int i = 0; i < OPEN_LIGHT_SOURCE_NUM; i++) {
 		openLightSource[i].load("data/musics/meka_ge_shoumei_swi01.wav");
 	}
@@ -366,16 +375,17 @@ void scene::initScene(oglt::IApp* app) {
 
 float animTimer = 0.0f;
 float lightingTimer = 0.0f;
+float rotateLightBallY = 0.0f;
 bool playAnimation = false;
 bool playLightSource = false;
-bool hasOpenLight = false;
+int openLightFrag = 0;
 bool showInformation = false;
 int switchShaderProgram = 0;
 
 void updateSwitchShader(IApp* app) {
 	if (app->oneKey('e') || app->oneKey('E')) {
 		switchShaderProgram++;
-		if (switchShaderProgram >= 4) {
+		if (switchShaderProgram >= 5) {
 			switchShaderProgram = 0;
 		}
 		ShaderProgram* program = nullptr;
@@ -387,14 +397,19 @@ void updateSwitchShader(IApp* app) {
 			program = Resource::instance()->findShaderProgram("handedSkin");
 			break;
 		case 2:
-			program = Resource::instance()->findShaderProgram("furSkin");
+			program = Resource::instance()->findShaderProgram("lightingSkin");
 			break;
 		case 3:
-			program = Resource::instance()->findShaderProgram("lightingSkin");
+			program = Resource::instance()->findShaderProgram("skinSharper");
+			break;
+		case 4:
+			program = Resource::instance()->findShaderProgram("skinGaussionBlur");
 			break;
 		}
 		if (program != nullptr) {
 			mikuModel.setShaderProgram(program);
+			stageModel.setShaderProgram(program);
+			iaxModel.setShaderProgram(program);
 		}
 	}
 }
@@ -405,15 +420,27 @@ void updateAnim(IApp* app) {
 		mikuModel.setTimer(-0.4f);
 		tellYourWorldSource.rewind();
 		tellYourWorldSource.play();
-		//kiminoSource.rewind();
-		//kiminoSource.play();
+		//gokurakuSource.rewind();
+		//gokurakuSource.play();
 		playLightSource = true;
-		hasOpenLight = false;
+		openLightFrag = 0;
+		eulerVector = vec3(0.0f, 0.0f, 0.0f);
 		Resource::instance()->findSpotLight("worldSpotLight1")->getLightParameter()->active = false;
 		Resource::instance()->findSpotLight("worldSpotLight2")->getLightParameter()->active = false;
 		Resource::instance()->findSpotLight("worldSpotLight3")->getLightParameter()->active = false;
 		Resource::instance()->findSpotLight("worldSpotLight4")->getLightParameter()->active = false;
+		Resource::instance()->findSpotLight("ball_1_spotLight1")->getLightParameter()->active = false;
+		Resource::instance()->findSpotLight("ball_1_spotLight2")->getLightParameter()->active = false;
+		Resource::instance()->findSpotLight("ball_1_spotLight3")->getLightParameter()->active = false;
+		Resource::instance()->findSpotLight("ball_1_spotLight4")->getLightParameter()->active = false;
+		Resource::instance()->findSpotLight("ball_1_spotLight5")->getLightParameter()->active = false;
+		Resource::instance()->findSpotLight("ball_1_spotLight6")->getLightParameter()->active = false;
 		Resource::instance()->findDirectionalLight("directionalLight1")->getLightParameter()->active = false;
+		mikuModel.setShaderProgram(Resource::instance()->findShaderProgram("lightingSkin"));
+		stageModel.setShaderProgram(Resource::instance()->findShaderProgram("lightingSkin"));
+		camera.removeChild(Resource::instance()->getSkybox(skyboxIds[skyboxIndex]));
+		skyboxIndex = 4;
+		camera.addChild(Resource::instance()->getSkybox(skyboxIds[skyboxIndex]));
 	}
 
 	if (app->oneKey('y') || app->oneKey('Y')) {
@@ -425,6 +452,9 @@ void updateAnim(IApp* app) {
 		lightingTimer += app->getDeltaTime();
 		if (animTimer >= 0.04f) {
 			mikuModel.updateAnimation(animTimer);
+			iaxModel.updateAnimation(animTimer);
+			remModel.updateAnimation(animTimer);
+			ramModel.updateAnimation(animTimer);
 			animTimer = 0.0f;
 		}
 		if (playLightSource) {
@@ -441,7 +471,7 @@ void updateAnim(IApp* app) {
 		}
 
 
-		if (!hasOpenLight) {
+		if (openLightFrag == 0) {
 			if (lightingTimer > 0.5f) {
 				Resource::instance()->findSpotLight("worldSpotLight1")->getLightParameter()->active = true;
 				Resource::instance()->findSpotLight("worldSpotLight4")->getLightParameter()->active = true;
@@ -457,8 +487,94 @@ void updateAnim(IApp* app) {
 
 			if (lightingTimer > 1.7f) {
 				Resource::instance()->findDirectionalLight("directionalLight1")->getLightParameter()->active = true;
-				hasOpenLight = true;
+				Resource::instance()->findSpotLight("ball_1_spotLight5")->getLightParameter()->active = true;
+				openLightFrag = 1;
 			}
+		}
+
+		if (openLightFrag == 1) {
+			if (lightingTimer > 15.0f) {
+				Resource::instance()->findSpotLight("worldSpotLight1")->getLightParameter()->active = false;
+				Resource::instance()->findSpotLight("worldSpotLight2")->getLightParameter()->active = false;
+				Resource::instance()->findSpotLight("worldSpotLight3")->getLightParameter()->active = false;
+				Resource::instance()->findSpotLight("worldSpotLight4")->getLightParameter()->active = false;
+				Resource::instance()->findSpotLight("ball_1_spotLight1")->getLightParameter()->active = true;
+				Resource::instance()->findSpotLight("ball_1_spotLight2")->getLightParameter()->active = true;
+				Resource::instance()->findSpotLight("ball_1_spotLight3")->getLightParameter()->active = true;
+				Resource::instance()->findSpotLight("ball_1_spotLight4")->getLightParameter()->active = true;
+				Resource::instance()->findSpotLight("ball_1_spotLight5")->getLightParameter()->active = true;
+				Resource::instance()->findSpotLight("ball_1_spotLight6")->getLightParameter()->active = true;
+				mikuModel.setShaderProgram(Resource::instance()->findShaderProgram("skin"));
+				camera.removeChild(Resource::instance()->getSkybox(skyboxIds[skyboxIndex]));
+				skyboxIndex = 3;
+				camera.addChild(Resource::instance()->getSkybox(skyboxIds[skyboxIndex]));
+				openLightFrag = 2;
+			}
+		}
+
+		if (openLightFrag == 2) {
+			rotateLightBallY += 3.0f * app->getDeltaTime();
+			eulerVector = vec3(0.0f, rotateLightBallY, 0.0f);
+
+			if (lightingTimer > 30.0f) {
+				stageModel.setShaderProgram(Resource::instance()->findShaderProgram("reflect"));
+				openLightFrag = 3;
+			}
+		}
+
+		if (openLightFrag == 3) {
+			rotateLightBallY += 3.0f * app->getDeltaTime();
+			eulerVector = vec3(0.0f, rotateLightBallY, 0.0f);
+			if (lightingTimer > 45.0f) {
+				camera.removeChild(Resource::instance()->getSkybox(skyboxIds[skyboxIndex]));
+				skyboxIndex = 1;
+				camera.addChild(Resource::instance()->getSkybox(skyboxIds[skyboxIndex]));
+				mikuModel.setShaderProgram(Resource::instance()->findShaderProgram("handedSkin"));
+				stageModel.setShaderProgram(Resource::instance()->findShaderProgram("handedSkin"));
+				openLightFrag = 4;
+			}
+		}
+
+		if (openLightFrag == 4) {
+			if (lightingTimer > 64.0f) {
+				enableMiku = false;
+				enableIax = true;
+				iaxObj.getLocalTransform()->position = vec3(0.0f, -200.0f, 0.0f);
+				iaxModel.setTimer(0.0f);
+				iaxModel.updateAnimation(0.0f);
+				iaxModel.setShaderProgram(Resource::instance()->findShaderProgram("handedSkin"));
+				openLightFrag = 5;
+			}
+		}
+
+		if (openLightFrag == 5) {
+			if (iaxObj.getLocalTransform()->position.y < 0.0f) {
+				iaxObj.getLocalTransform()->position.y += 30.0f * app->getDeltaTime();
+			}
+			animTimer = 0.0f;
+			if (lightingTimer > 74.0f) {
+				kiminoSource.rewind();
+				kiminoSource.play();
+				openLightFrag = 7;
+			}
+		}
+
+		if (openLightFrag == 7 && lightingTimer > 89.0f) {
+			iaxModel.setShaderProgram(Resource::instance()->findShaderProgram("skinSharper"));
+			stageModel.setShaderProgram(Resource::instance()->findShaderProgram("skinSharper"));
+			openLightFrag = 8;
+		}
+
+		if (openLightFrag == 8 && lightingTimer > 105.0f) {
+			iaxModel.setShaderProgram(Resource::instance()->findShaderProgram("skinGaussionBlur"));
+			stageModel.setShaderProgram(Resource::instance()->findShaderProgram("skinGaussionBlur"));
+			openLightFrag = 9;
+		}
+
+		if (openLightFrag == 9 && lightingTimer > 120.0f) {
+			iaxModel.setShaderProgram(Resource::instance()->findShaderProgram("skin"));
+			stageModel.setShaderProgram(Resource::instance()->findShaderProgram("skin"));
+			openLightFrag = 10;
 		}
 	}
 }
@@ -488,25 +604,33 @@ void oglt::scene::updateScene(IApp * app)
 	stageObj.setVisiable(enableStage);
 	mikuObj.setVisiable(enableMiku);
 	iaxObj.setVisiable(enableIax);
+	remObj.setVisiable(enableRem);
+	ramObj.setVisiable(enableRam);
 
 	if (app->oneKey('o')) {
 		showInformation = !showInformation;
 	}
+
+	if (app->oneKey('i')) {
+		openLightFrag = 99;
+		iaxModel.setTimer(0.0f);
+		mikuModel.setTimer(0.0f);
+	}
 }
 
 void renderFont(IApp* app) {
+	ShaderProgram* spFont = Resource::instance()->findShaderProgram("font");
+
+	if (spFont != NULL) {
+		spFont->useProgram();
+		spFont->setUniform("matrices.projMatrix", app->getOrth());
+		spFont->setUniform("vColor", vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	}
+
+	oglt::uint w, h;
+	app->getViewport(w, h);
+	glDisable(GL_DEPTH_TEST);
 	if (showInformation) {
-		ShaderProgram* spFont = Resource::instance()->findShaderProgram("font");
-
-		if (spFont != NULL) {
-			spFont->useProgram();
-			spFont->setUniform("matrices.projMatrix", app->getOrth());
-			spFont->setUniform("vColor", vec4(1.0f, 1.0f, 1.0f, 1.0f));
-		}
-
-		glDisable(GL_DEPTH_TEST);
-		oglt::uint w, h;
-		app->getViewport(w, h);
 		ftFont.printFormatted(20, h - 35, 24, "UPS: %d", app->getUps());
 		ftFont.printFormatted(20, h - 70, 24, "FPS: %d", app->getFps());
 		ftFont.printFormatted(20, h - 100, 20, "PX: %.2f", camera.getWorldTransform()->position.x);
@@ -518,8 +642,38 @@ void renderFont(IApp* app) {
 		ftFont.printFormatted(20, h - 215, 20, "VZ: %.2f", camera.getView()->z);
 		ftFont.print("OgltApp : https://github.com/Lei-k/oglt_app", 10, 15, 20);
 		ftFont.render();
-		glEnable(GL_DEPTH_TEST);
 	}
+	else {
+		if (playAnimation) {
+			switch (openLightFrag) {
+			case 1:
+				ftFont.print("ALL Lighting", 20, h - 45, 26);
+				break;
+			case 2:
+				ftFont.print("Original Miku + Lighting Ball", 20, h - 45, 26);
+				break;
+			case 3:
+				ftFont.print("Original Miku + Reflect Stage", 20, h - 45, 26);
+				break;
+			case 4: case 5: case 6: case 7:
+				ftFont.print("Handed", 20, h - 45, 26);
+				break;
+			case 8:
+				ftFont.print("Sharper", 20, h - 45, 26);
+				break;
+			case 9:
+				ftFont.print("Gaussion Bulr", 20, h - 45, 26);
+				break;
+			case 10:
+				ftFont.print("Original IAx", 20, h - 45, 26);
+				break;
+			default:
+				break;
+			}
+			ftFont.render();
+		}
+	}
+	glEnable(GL_DEPTH_TEST);
 }
 
 void scene::renderScene(oglt::IApp* app) {

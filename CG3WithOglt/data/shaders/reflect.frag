@@ -28,6 +28,7 @@ layout(std140,binding = 1) uniform LightSourceBlock
 uniform samplerCube envirMap;//Cube Map #akira
 uniform vec3 CameraPos;//Camera position #akira
 uniform int enableLight;
+uniform float reflectMixFactor = 0.6;
 Material material;
 
 void main()
@@ -43,8 +44,6 @@ void main()
 	vec4 Refract_Color=texture(envirMap,Refract_Vector);
 	//####Region akira
 
-	
-			
 	
 	vec3 vNormalized = normalize(vNormal);
 	
@@ -66,13 +65,11 @@ void main()
 		}
 	}
 	//vec3 lightpos=vec3(0.0,5.0,0.0);
-	//vec3 vMixedColor = BlinnShading(vTexColor,vWorldPos,lightpos,CameraPos,unitNormal);
+	//vec3 blinColor = BlinnShading(vTexColorRgb,vWorldPos,lightpos,CameraPos,unitNormal);
 
 	
 	//vMixedColor+=lightColor;
 	vec4 totalColor= vec4(lightColor,1.0);
   	//vec4 vDirLightColor = GetDirectionalLightColor(sunLight, vNormalized);
-	//outputColor = mix(totalColor,Refract_Color, 0.5);//mix color by 1:1 You can change 
-													//transparency by change the float value
-    outputColor= vec4(lightColor, vTexColor.a);
+	outputColor = mix(totalColor,Refract_Color, reflectMixFactor); //mix color by 1:1 You can change 												//transparency by change the float value
 }

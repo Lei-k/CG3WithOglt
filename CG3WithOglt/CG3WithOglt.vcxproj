@@ -129,6 +129,7 @@
     <ClInclude Include="oglt_app.h" />
     <ClInclude Include="oglt_assimp_model.h" />
     <ClInclude Include="oglt_audio_source.h" />
+    <ClInclude Include="oglt_basic_shape.h" />
     <ClInclude Include="oglt_callback.h" />
     <ClInclude Include="oglt_camera.h" />
     <ClInclude Include="oglt_fbx_model.h" />
@@ -160,6 +161,7 @@
     <ClCompile Include="oglt_app.cpp" />
     <ClCompile Include="oglt_assimp_model.cpp" />
     <ClCompile Include="oglt_audio_source.cpp" />
+    <ClCompile Include="oglt_basic_shape.cpp" />
     <ClCompile Include="oglt_camera.cpp" />
     <ClCompile Include="oglt_fbx_model.cpp" />
     <ClCompile Include="oglt_freetypefont.cpp" />

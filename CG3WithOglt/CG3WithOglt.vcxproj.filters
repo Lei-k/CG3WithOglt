@@ -120,6 +120,9 @@
     <ClInclude Include="oglt_spot_light_ball.h">
       <Filter>標頭檔\scene</Filter>
     </ClInclude>
+    <ClInclude Include="oglt_basic_shape.h">
+      <Filter>標頭檔\tools</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -192,6 +195,9 @@
       <Filter>原始程式檔\tools</Filter>
     </ClCompile>
     <ClCompile Include="oglt_spot_light_ball.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="oglt_basic_shape.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
   </ItemGroup>
