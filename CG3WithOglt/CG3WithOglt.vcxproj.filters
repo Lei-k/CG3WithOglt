@@ -31,6 +31,9 @@
     <Filter Include="標頭檔\scene">
       <UniqueIdentifier>{b09738fb-3eb1-47f6-b764-800147ee84a1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="標頭檔\glsl">
+      <UniqueIdentifier>{dd4f278e-f3e8-425a-9a79-7d47eefe2fc3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="oglt_app.h">
@@ -122,6 +125,9 @@
     </ClInclude>
     <ClInclude Include="oglt_basic_shape.h">
       <Filter>標頭檔\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="oglt_ibackend.h">
+      <Filter>標頭檔\backend</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

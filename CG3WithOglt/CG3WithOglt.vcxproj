@@ -135,6 +135,7 @@
     <ClInclude Include="oglt_fbx_model.h" />
     <ClInclude Include="oglt_freetypefont.h" />
     <ClInclude Include="oglt_iapp.h" />
+    <ClInclude Include="oglt_ibackend.h" />
     <ClInclude Include="oglt_imaterial.h" />
     <ClInclude Include="oglt_irenderable.h" />
     <ClInclude Include="oglt_ishaderable.h" />
